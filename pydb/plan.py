@@ -1,4 +1,14 @@
-from .query import Query, Select, Where, WhereExpr, Operand, BinExpr, Symbol, Const
+from .query import (
+    Query,
+    Select,
+    Where,
+    WhereExpr,
+    Operand,
+    BinExpr,
+    Symbol,
+    Const,
+    Insert,
+)
 from .expr import Expr, Seq
 from .project import ColumnProjection
 from .scan import Scan, FilteredScan
@@ -6,7 +16,6 @@ from .table import Schema, ITable
 from typing import (
     Dict,
 )
-
 
 class Planner:
     def plan(self, query: Query) -> Expr:
@@ -23,19 +32,21 @@ class SimplePlanner:
     }
 
     def __init__(self, tables: Dict[str, ITable]):
-        self.tables = tables
-        self.curr_table = None
+        self._tables = tables
+        self._curr_table = None
 
     # TODO: Support joins
     # TODO: Support indexed lookup
     def plan(self, query: Query) -> Expr:
         if isinstance(query, Select):
-            return self.plan_select(query)
+            return self._plan_select(query)
+        elif isinstance(query, Insert):
+            return self._plan_insert(query)
         else:
             raise NotImplementedError()
 
-    def plan_select(self, query: Select) -> Expr:
-        self.curr_table = self.tables[query.from_clause.table]
+    def _plan_select(self, query: Select) -> Expr:
+        self._curr_table = self._tables[query.from_clause.table]
 
         expr = Seq(table.rows())
 
@@ -49,6 +60,9 @@ class SimplePlanner:
             expr = ColumnProjection(expr, columns)
 
         return expr
+
+    def _plan_insert(self, query: Insert):
+        pass
 
     def _where_filter(self, clause: Where):
         cond = clause.condition
@@ -64,8 +78,8 @@ class SimplePlanner:
         if isinstance(expr, Const):
             return lambda row: expr.val
         elif isinstance(expr, Symbol):
-            assert self.curr_table
-            cid = self.curr_table.schema.columnid(expr.val)
+            assert self._curr_table
+            cid = self._curr_table.schema.columnid(expr.val)
             return lambda row: row[cid]
         else:
             raise NotImplementedError()

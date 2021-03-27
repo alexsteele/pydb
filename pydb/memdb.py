@@ -1,40 +1,40 @@
 from .core import Database
 from .parse import parse_query
-from .plan import Plan, Planner
-from .index import SortedIndex
-from .scan import IndexedLookup
-from .project import Projection, ColumnProjection
-from .filter import Filter
+from .query import CreateTable
+from .plan import SimplePlanner
 from .table import ITable
+from typing import List, Tuple
 
 
 class MemTable(ITable):
-    def __init__(self, name, schema):
-        self.name = name
-        self.schema = schema
-        self.rows = []
-        self.indexes = []
+    def __init__(self, schema):
+        self._schema = schema
+        self._rows = []  # type: List[Tuple]
+        self._indexes = []
 
+    def schema(self):
+        return self._schema
 
-# TODO: fixme
-class MemExecutor:
-    def __init__(self):
-        pass
-
-    def exec(self):
-        table = MemTable()
-        index = HashIndex()
-        # lookup = IndexedLookup(table.rows, index, )
-
-        # projection = ColumnProjection(lookup.exec)
-
+    def rows(self):
+        return iter(self._rows)
 
 class MemDatabase(Database):
     def __init__(self, name):
         self._name = name
-        self._tables = {}
+        self._tables = {}  # type: Dict[str, MemTable]
 
-    def query(self, query, **options):
+    def exec(self, query, **options):
         if isinstance(query, str):
             query = parse_query(query)
-        pass
+        if isinstance(query, CreateTable):
+            self._create_table(query)
+            return ()
+        planner = SimplePlanner(self._tables)
+        expr = planner.plan(query)
+        return expr.exec()
+
+    def _create_table(self, query: CreateTable):
+        if query.schema.name in self._tables:
+            raise ValueError("{} already exists".format(query.schema.name))
+        table = MemTable(query.schema)
+        self._tables[query.schema.name] = table

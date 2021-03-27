@@ -1,4 +1,4 @@
-from .table import Table
+from .table import Table, Schema
 from dataclasses import dataclass
 from typing import (
     Any,
@@ -14,8 +14,7 @@ class Query:
 
 @dataclass
 class CreateTable(Query):
-    table: Table
-
+    schema: Schema 
 
 @dataclass
 class Insert(Query):

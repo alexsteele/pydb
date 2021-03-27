@@ -3,10 +3,8 @@ from .query import Query
 from typing import Text, Union, Iterator, Tuple
 
 
-class Cursor:
-    def __next__(self):
-        pass
-
+class Cursor(Iterator[Tuple]):
+    pass
 
 class Database:
     def __enter__(self):
@@ -15,7 +13,7 @@ class Database:
     def __exit__(self):
         pass
 
-    def exec(self, query: Union[Text, Query], **kwargs) -> Cursor:
+    def exec(self, query: Union[Text, Query], **options) -> Cursor:
         pass
 
     def delete(self):

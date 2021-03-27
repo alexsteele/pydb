@@ -4,22 +4,25 @@ from typing import (
     Sequence,
 )
 from enum import Enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
 
 class DataType(Enum):
     INT = "INT"
     STRING = "STRING"
 
+
 class ColumnAttr(Enum):
     PRIMARY_KEY = "PRIMARY_KEY"
     AUTO_INCREMENT = "AUTO_INCREMENT"
+    NOT_NULL = "NOT_NULL"
 
 
 @dataclass
 class Column:
     name: str
     dtype: DataType
-    attrs: Sequence[ColumnAttr]
+    attrs: Sequence[ColumnAttr] = field(default_factory=list)
 
 
 @dataclass
@@ -42,9 +45,10 @@ class Table:
         self.columns = columns
         self.options = options
 
+
 class ITable:
     def name(self) -> str:
-        pass
+        return self.schema().name
 
     def schema(self) -> Schema:
         pass
