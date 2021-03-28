@@ -1,10 +1,12 @@
 from typing import (
+    Any,
     Iterator,
     Tuple,
     Sequence,
+    Dict,
 )
 from enum import Enum
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 class DataType(Enum):
@@ -16,13 +18,23 @@ class ColumnAttr(Enum):
     PRIMARY_KEY = "PRIMARY_KEY"
     AUTO_INCREMENT = "AUTO_INCREMENT"
     NOT_NULL = "NOT_NULL"
+    UNIQUE = "UNIQUE"
+    DEFAULT = "DEFAULT"
 
 
-@dataclass
+@dataclass(init=False)
 class Column:
     name: str
     dtype: DataType
-    attrs: Sequence[ColumnAttr] = field(default_factory=list)
+    attrs: Dict[ColumnAttr, Any]
+
+    def __init__(self, name, dtype, *attrs, kwattrs={}):
+        self.name = name
+        self.dtype = dtype
+        self.attrs = {
+            **{attr: True for attr in attrs},
+            **kwattrs,
+        }
 
 
 @dataclass
