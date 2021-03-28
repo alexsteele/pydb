@@ -1,8 +1,7 @@
-from .table import Table, Schema
+from .table import Schema
 from dataclasses import dataclass
 from typing import (
     Any,
-    List,
     Sequence,
     Optional,
 )
@@ -14,11 +13,12 @@ class Query:
 
 @dataclass
 class CreateTable(Query):
-    schema: Schema 
+    schema: Schema
+
 
 @dataclass
 class Insert(Query):
-    into: str
+    table: str
     columns: Sequence[str]
     values: Sequence[Any]
 
@@ -60,6 +60,6 @@ class Where:
 
 @dataclass
 class Select(Query):
-    exprs: List[str]  # TODO: support select exprs
+    exprs: Sequence[str]  # TODO: support select exprs
     from_clause: From
     where_clause: Optional[Where] = None

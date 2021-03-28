@@ -36,6 +36,9 @@ class Schema:
     def columnids(self, *names):
         return map(self.columnid, names) if names else range(len(self.columns))
 
+    def column_names(self):
+        return tuple(c.name for c in self.columns)
+
 
 # TODO: remove?
 @dataclass

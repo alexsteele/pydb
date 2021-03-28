@@ -6,6 +6,7 @@ from typing import Text, Union, Iterator, Tuple
 class Cursor(Iterator[Tuple]):
     pass
 
+
 class Database:
     def __enter__(self):
         pass
@@ -20,5 +21,5 @@ class Database:
         pass
 
 
-def open(url, **kwargs) -> Database:
+def open(url, **options) -> Database:
     pass

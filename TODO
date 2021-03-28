@@ -1,0 +1,18 @@
+
+- Support JOIN
+- Support NULL, autoinc, etc.
+- Database initialization
+- Support select expressions (select *; select foo+1)
+- Support aggregations
+- Stats based query planner
+- Query plan printouts
+- Cursor invalidation/multiple cursors
+- Tracing and logs
+- Query parsing
+- Query stats collection
+- Persistent backend
+- Generate test data
+- Benchmarks
+- CLI
+- Scripts for linting and tests
+- Server backend

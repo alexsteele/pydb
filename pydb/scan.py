@@ -1,25 +1,22 @@
-import itertools
-from .index import Index
+from .expr import Expr
 from typing import (
     TypeVar,
     Iterator,
-    Iterable,
-    Optional,
 )
 
 T = TypeVar("T")
 V = TypeVar("V")
 
 
-class Scan:
-    def __init__(self, seq):
-        self.seq = seq
+class Scan(Expr):
+    def __init__(self, expr: Expr):
+        self.expr = expr
 
     def exec(self) -> Iterator[V]:
-        return iter(self.seq)
+        return self.expr.exec()
 
 
-class FilteredScan:
+class FilteredScan(Expr):
     def __init__(self, expr, filterfn):
         self.expr = expr
         self.filter = filterfn
@@ -41,7 +38,7 @@ class SortedIndexScan:
         return (self.seq[rid] for rid in self.index.scan(key))
 
 
-class RangeIndexedScan:
+class RangeIndexedScan(Expr):
     def __init__(self, seq, index, start, end):
         self.seq = seq
         self.index = index

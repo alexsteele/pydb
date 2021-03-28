@@ -4,13 +4,17 @@ from typing import (
     Optional,
     Iterator,
     Dict,
+    Generic,
 )
 
 K = TypeVar("K")
 V = TypeVar("T")
 
 
-class Index:
+class Index(Generic[K, V]):
+    def insert(self, key: K, val: V):
+        pass
+
     def find(self, key: K) -> Optional[V]:
         pass
 

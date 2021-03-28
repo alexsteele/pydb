@@ -1,10 +1,8 @@
 from dataclasses import dataclass
+from .table import ITable
 from typing import (
     Iterator,
-    TypeVar,
-    Generic,
     Tuple,
-    Sequence,
 )
 
 
@@ -14,8 +12,8 @@ class Expr:
 
 
 @dataclass
-class Seq(Expr):
-    seq: Sequence[Tuple]
+class Rows(Expr):
+    table: ITable
 
     def exec(self) -> Iterator[Tuple]:
-        return iter(seq)
+        return self.table.rows()

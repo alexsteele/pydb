@@ -2,20 +2,19 @@ from .query import (
     Query,
     Select,
     Where,
-    WhereExpr,
     Operand,
     BinExpr,
     Symbol,
     Const,
-    Insert,
 )
-from .expr import Expr, Seq
+from .expr import Expr, Rows
 from .project import ColumnProjection
 from .scan import Scan, FilteredScan
-from .table import Schema, ITable
+from .table import ITable
 from typing import (
     Dict,
 )
+
 
 class Planner:
     def plan(self, query: Query) -> Expr:
@@ -40,29 +39,25 @@ class SimplePlanner:
     def plan(self, query: Query) -> Expr:
         if isinstance(query, Select):
             return self._plan_select(query)
-        elif isinstance(query, Insert):
-            return self._plan_insert(query)
         else:
             raise NotImplementedError()
 
     def _plan_select(self, query: Select) -> Expr:
-        self._curr_table = self._tables[query.from_clause.table]
+        table = self._tables[query.from_clause.table]
+        self._curr_table = table
 
-        expr = Seq(table.rows())
+        expr = Rows(table)
 
         if query.where_clause:
             expr = FilteredScan(expr, self._where_filter(query.where_clause))
         else:
             expr = Scan(expr)
 
-        columns = self.table.schema.columnids(*query.exprs)
-        if columns != table.schema.columnids():
+        columns = table.schema().columnids(*query.exprs)
+        if columns != table.schema().columnids():
             expr = ColumnProjection(expr, columns)
 
         return expr
-
-    def _plan_insert(self, query: Insert):
-        pass
 
     def _where_filter(self, clause: Where):
         cond = clause.condition

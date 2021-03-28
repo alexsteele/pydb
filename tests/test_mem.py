@@ -7,8 +7,11 @@ from pydb.table import (
 )
 from pydb.query import (
     CreateTable,
+    Insert,
+    Select,
+    From,
 )
-from pydb.memdb import MemDatabase
+from pydb.mem import MemDatabase
 import unittest
 
 
@@ -26,5 +29,18 @@ class MemDatabaseTestCase(unittest.TestCase):
                 )
             )
         )
-        # db.exec()
-        self.assertEqual(1, 1)
+        db.exec(
+            Insert(
+                "students",
+                ("name", "age"),
+                ("jane", 10),
+            )
+        )
+        results = db.exec(
+            Select(
+                ("name", "age"),
+                From("students"),
+            )
+        )
+        results = list(results)
+        self.assertEqual(results, [("jane", 10)])

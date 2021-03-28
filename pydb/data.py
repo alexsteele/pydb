@@ -1,6 +1,5 @@
 from typing import (
     Callable,
-    Generic,
     TypeVar,
     Optional,
     Iterator,
