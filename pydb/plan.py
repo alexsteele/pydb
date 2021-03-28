@@ -13,6 +13,7 @@ from .scan import Scan, FilteredScan
 from .table import ITable
 from typing import (
     Dict,
+    Optional,
 )
 
 
@@ -32,7 +33,7 @@ class SimplePlanner:
 
     def __init__(self, tables: Dict[str, ITable]):
         self._tables = tables
-        self._curr_table = None
+        self._curr_table = None  # type: Optional[ITable]
 
     # TODO: Support joins
     # TODO: Support indexed lookup
@@ -46,7 +47,7 @@ class SimplePlanner:
         table = self._tables[query.from_clause.table]
         self._curr_table = table
 
-        expr = Rows(table)
+        expr = Rows(table)  # type: Expr
 
         if query.where_clause:
             expr = FilteredScan(expr, self._where_filter(query.where_clause))
@@ -74,7 +75,7 @@ class SimplePlanner:
             return lambda row: expr.val
         elif isinstance(expr, Symbol):
             assert self._curr_table
-            cid = self._curr_table.schema.columnid(expr.val)
+            cid = self._curr_table.schema().columnid(expr.val)
             return lambda row: row[cid]
         else:
             raise NotImplementedError()

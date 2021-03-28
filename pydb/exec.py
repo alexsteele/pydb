@@ -1,6 +1,6 @@
-from .plan import Plan
+from .expr import Expr
 
 
 class Executor:
-    def exec(self, plan: Plan):
+    def exec(self, plan: Expr):
         pass

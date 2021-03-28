@@ -1,9 +1,9 @@
 from .query import Query
 
-from typing import Text, Union, Iterator, Tuple
+from typing import Text, Union, Iterable, Tuple
 
 
-class Cursor(Iterator[Tuple]):
+class Cursor(Iterable[Tuple]):
     pass
 
 

@@ -1,7 +1,6 @@
 from .expr import Expr
 from typing import (
     TypeVar,
-    Iterator,
 )
 
 T = TypeVar("T")
@@ -12,7 +11,7 @@ class Scan(Expr):
     def __init__(self, expr: Expr):
         self.expr = expr
 
-    def exec(self) -> Iterator[V]:
+    def exec(self):
         return self.expr.exec()
 
 
@@ -22,7 +21,7 @@ class FilteredScan(Expr):
         self.filter = filterfn
 
     def exec(self):
-        return (row for row in self.expr.eval() if self.filter(row))
+        return (row for row in self.expr.exec() if self.filter(row))
 
 
 # TODO: seq->Expr?

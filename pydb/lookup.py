@@ -1,4 +1,4 @@
-from .core import Expr
+from .expr import Expr
 
 
 class IndexedLookup(Expr):

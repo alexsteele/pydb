@@ -49,8 +49,8 @@ class Const(Operand):
 @dataclass
 class BinExpr(WhereExpr):
     op: str
-    left: WhereExpr
-    right: WhereExpr
+    left: Operand
+    right: Operand
 
 
 @dataclass

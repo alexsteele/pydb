@@ -3,6 +3,7 @@ import context
 from pydb.table import (
     Schema,
     Column,
+    ColumnAttr,
     DataType,
 )
 from pydb.query import (
@@ -21,7 +22,7 @@ class MemDatabaseTestCase(unittest.TestCase):
         db.exec(
             CreateTable(
                 Schema(
-                    "students",
+                    name="students",
                     columns=[
                         Column("name", DataType.STRING),
                         Column("age", DataType.INT),
@@ -44,3 +45,31 @@ class MemDatabaseTestCase(unittest.TestCase):
         )
         results = list(results)
         self.assertEqual(results, [("jane", 10)])
+
+    def test_create_table_bad_schema(self):
+        # empty schema
+        # no primary key
+        # multiple primary keys
+        pass
+
+    def test_create_table_already_exists(self):
+        pass
+
+    def test_select_bad_table(self):
+        pass
+
+    def test_select_bad_column_name(self):
+        pass
+
+    def test_select_no_filter(self):
+        pass
+
+    def test_select_column_subset(self):
+        pass
+
+    def test_where_multiple_matches(self):
+        pass
+
+    def test_where_key_lookup(self):
+        # present key, missing key
+        pass
