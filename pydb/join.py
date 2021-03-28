@@ -1,17 +1,15 @@
 from enum import Enum
-from .core import Expr
+from .expr import Expr
 from typing import (
     Iterator,
-    Iterable,
+    Generic,
     TypeVar,
     Tuple,
-    Callable,
     Optional,
 )
 
 A = TypeVar("A")
 B = TypeVar("B")
-C = TypeVar("C")
 
 
 class JoinType(Enum):
@@ -25,96 +23,72 @@ class Join(Expr):
     pass
 
 
-class InnerJoin(Join):
-    def join(
-        self,
-        r1: Iterable[A],
-        f1: Callable[[A], C],
-        r2: Iterable[B],
-        f2: Callable[[B], C],
-    ) -> Iterator[Tuple[A, B]]:
+class InnerJoin(Join, Generic[A, B]):
+    def exec(self) -> Iterator[Tuple[A, B]]:
         pass
 
 
-class LeftOuterJoin(Join):
-    def join(
-        self,
-        r1: Iterable[A],
-        f1: Callable[[A], C],
-        r2: Iterable[B],
-        f2: Callable[[B], C],
-    ) -> Iterator[Tuple[A, Optional[B]]]:
+class LeftOuterJoin(Join, Generic[A, B]):
+    def exec(self) -> Iterator[Tuple[A, Optional[B]]]:
         pass
 
 
-class RightOuterJoin(Join):
-    def join(
-        self,
-        r1: Iterable[A],
-        f1: Callable[[A], C],
-        r2: Iterable[B],
-        f2: Callable[[B], C],
-    ) -> Iterator[Tuple[Optional[A], B]]:
+class RightOuterJoin(Join, Generic[A, B]):
+    def exec(self) -> Iterator[Tuple[Optional[A], B]]:
         pass
 
 
-class FullOuterJoin(Join):
-    def join(
-        self,
-        r1: Iterable[A],
-        f1: Callable[[A], C],
-        r2: Iterable[B],
-        f2: Callable[[B], C],
-    ) -> Iterator[Tuple[Optional[A], Optional[B]]]:
+class FullOuterJoin(Join, Generic[A, B]):
+    def exec(self) -> Iterator[Tuple[Optional[A], Optional[B]]]:
         pass
 
 
 class NestedLoopJoin(InnerJoin):
-    def __init__(self, seq1, f1, seq2, f2):
-        self.seq1
-        self.f1 = f1
-        self.seq2 = seq2
-        self.f2 = f2
+    def __init__(self, exp1, keyfn1, exp2, keyfn2):
+        self.exp1
+        self.keyfn1 = keyfn1
+        self.exp2 = exp2
+        self.keyfn2 = keyfn2
 
-    def exec(self) -> Iterator[Tuple[A, B]]:
-        for a in self.seq1:
-            for b in self.seq2:
-                if f1(a) == f2(b):
+    def exec(self):
+        for a in self.exp1.exec():
+            for b in self.exp2.exec():
+                if self.keyfn1(a) == self.keyfn2(b):
                     yield (a, b)
 
 
 class HashJoin(InnerJoin):
-    def __init__(self, seq1, f1, seq2, f2):
-        self.seq1
-        self.f1 = f1
-        self.seq2 = seq2
-        self.f2 = f2
+    def __init__(self, exp1, keyfn1, exp2, keyfn2):
+        self.exp1
+        self.keyfn1 = keyfn1
+        self.exp2 = exp2
+        self.keyfn2 = keyfn2
 
     def exec(self):
         sentinel = object()
-        index = {self.f1(a): a for a in self.seq1}
-        for b in self.seq2:
-            a = index.get(f2(b), sentinel)
+        index = {self.keyfn1(a): a for a in self.exp1.exec()}
+        for b in self.exp2.exec():
+            a = index.get(keyfn2(b), sentinel)
             if a is not sentinel:
                 yield (a, b)
 
 
 class MergeJoin(InnerJoin):
-    def __init__(self, seq1, f1, seq2, f2):
-        self.seq1
-        self.f1 = f1
-        self.seq2 = seq2
-        self.f2 = f2
+    def __init__(self, exp1, keyfn1, exp2, keyfn2):
+        self.exp1
+        self.keyfn1 = keyfn1
+        self.exp2 = exp2
+        self.keyfn2 = keyfn2
 
     def exec(self):
         sentinel = object()
-        it1 = iter(self.seq1)
-        it2 = iter(self.seq2)
+        it1 = self.exp1.exec()
+        it2 = self.exp2.exec()
         a = next(it1, sentinel)
         b = next(it2, sentinel)
         while sentinel not in (a, b):
-            k1 = self.f1(a)
-            k2 = self.f2(b)
+            k1 = self.keyfn1(a)
+            k2 = self.keyfn2(b)
             if k1 == k2:
                 yield (a, b)
                 a = next(it1, sentinel)
