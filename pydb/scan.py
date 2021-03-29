@@ -1,18 +1,12 @@
 from dataclasses import dataclass
 from .expr import Expr
 from .index import SortedIndex, RangeIndex
-from .table import ITable
 from typing import (
-    TypeVar,
     Callable,
     Any,
     Tuple,
     Sequence,
 )
-
-T = TypeVar("T")
-V = TypeVar("V")
-
 
 @dataclass
 class Scan(Expr):
