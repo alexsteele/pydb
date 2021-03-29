@@ -9,9 +9,9 @@ class Cursor(Iterable[Tuple]):
 
 class Database:
     def __enter__(self):
-        pass
+        return self
 
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         pass
 
     def exec(self, query: Union[Text, Query], **options) -> Cursor:
@@ -19,7 +19,3 @@ class Database:
 
     def delete(self):
         pass
-
-
-def pydb_open(url, *flags, **options) -> Database:
-    raise NotImplementedError()

@@ -8,12 +8,6 @@ from pydb.table import Column, ColumnAttr, DataType, Schema
 
 class PydbInterfaceTestCase(unittest.TestCase):
 
-    def test_pydb_open(self):
-        with self.assertRaises(NotImplementedError):
-            with pydb_open("mem:test") as db:
-                pass
-
-    @unittest.skip("not implemented")
     def test_readme_example(self):
         schema = Schema(
             "students",
