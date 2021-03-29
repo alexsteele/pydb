@@ -21,5 +21,5 @@ class Database:
         pass
 
 
-def pydb_open(url, **options) -> Database:
-    pass
+def pydb_open(url, *flags, **options) -> Database:
+    raise NotImplementedError()
