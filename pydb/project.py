@@ -1,23 +1,22 @@
+from dataclasses import dataclass
+from typing import Any, Callable, Sequence, Tuple
+
 from .expr import Expr
-from typing import TypeVar
-
-A = TypeVar("A")
-B = TypeVar("B")
 
 
+@dataclass
 class DynamicProjection(Expr):
-    def __init__(self, seq, fn):
-        self.seq = seq
-        self.fn = fn
+    expr: Expr
+    fn: Callable[[Tuple], Any]
 
     def exec(self):
         return (self.fn(row) for row in self.seq)
 
 
+@dataclass
 class ColumnProjection(Expr):
-    def __init__(self, expr, columns):
-        self.expr = expr
-        self.columns = columns
+    expr: Expr
+    columns: Sequence[int]
 
     def exec(self):
         return (self._project(row) for row in self.expr.exec())
