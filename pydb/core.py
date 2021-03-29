@@ -21,5 +21,5 @@ class Database:
         pass
 
 
-def open(url, **options) -> Database:
+def pydb_open(url, **options) -> Database:
     pass
