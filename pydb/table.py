@@ -10,6 +10,7 @@ from enum import Enum
 from dataclasses import dataclass
 from .index import Index
 
+# TODO: Move public schema stuff to schema.py?
 
 class DataType(Enum):
     INT = "INT"
