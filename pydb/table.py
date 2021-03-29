@@ -56,15 +56,6 @@ class Schema:
         return tuple(c.name for c in self.columns)
 
 
-# TODO: remove?
-@dataclass
-class Table:
-    def __init__(self, name, *columns, **options):
-        self.name = name
-        self.columns = columns
-        self.options = options
-
-
 class ITable:
     def name(self) -> str:
         return self.schema().name
