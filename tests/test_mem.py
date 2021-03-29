@@ -22,11 +22,9 @@ class MemDatabaseTestCase(unittest.TestCase):
         db.exec(
             CreateTable(
                 Schema(
-                    name="students",
-                    columns=[
-                        Column("name", DataType.STRING),
-                        Column("age", DataType.INT),
-                    ],
+                    "students",
+                    Column("name", DataType.STRING),
+                    Column("age", DataType.INT),
                 )
             )
         )

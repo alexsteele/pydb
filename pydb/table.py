@@ -37,10 +37,14 @@ class Column:
         }
 
 
-@dataclass
+@dataclass(init=False)
 class Schema:
     name: str
     columns: Sequence[Column]
+
+    def __init__(self, name, *columns):
+        self.name = name
+        self.columns = columns
 
     def columnid(self, name):
         return next(i for i, c in enumerate(self.columns) if c.name == name)
