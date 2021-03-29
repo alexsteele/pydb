@@ -1,4 +1,3 @@
-
 import unittest
 
 from pydb import Database, pydb_open
@@ -7,7 +6,6 @@ from pydb.table import Column, ColumnAttr, DataType, Schema
 
 
 class PydbInterfaceTestCase(unittest.TestCase):
-
     def test_readme_example(self):
         schema = Schema(
             "students",

@@ -1,10 +1,7 @@
-from .table import Schema
 from dataclasses import dataclass
-from typing import (
-    Any,
-    Sequence,
-    Optional,
-)
+from typing import Any, Optional, Sequence
+
+from .table import Schema
 
 
 class Query:

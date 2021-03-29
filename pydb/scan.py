@@ -1,12 +1,8 @@
 from dataclasses import dataclass
+from typing import Any, Callable, Sequence, Tuple
+
 from .expr import Expr
-from .index import SortedIndex, RangeIndex
-from typing import (
-    Callable,
-    Any,
-    Tuple,
-    Sequence,
-)
+from .index import RangeIndex, SortedIndex
 
 
 @dataclass

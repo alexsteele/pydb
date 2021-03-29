@@ -1,9 +1,7 @@
 from dataclasses import dataclass
+from typing import Iterator, Tuple
+
 from .table import ITable
-from typing import (
-    Iterator,
-    Tuple,
-)
 
 
 class Expr:

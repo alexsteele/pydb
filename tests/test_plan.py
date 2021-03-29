@@ -1,28 +1,15 @@
+import unittest
+
 import context
 
-from pydb.table import (
-    Schema,
-    DataType,
-    Column,
-    ColumnAttr,
-)
-from pydb.lookup import IndexedLookup
-from pydb.project import ColumnProjection
-from pydb.plan import SimplePlanner
-from pydb.query import (
-    Select,
-    From,
-    Where,
-    Symbol,
-    Const,
-    BinExpr,
-)
-from pydb.scan import (
-    Scan,
-)
 from pydb.expr import Rows
+from pydb.lookup import IndexedLookup
 from pydb.mem import MemTable
-import unittest
+from pydb.plan import SimplePlanner
+from pydb.project import ColumnProjection
+from pydb.query import BinExpr, Const, From, Select, Symbol, Where
+from pydb.scan import Scan
+from pydb.table import Column, ColumnAttr, DataType, Schema
 
 students = Schema(
     "students",

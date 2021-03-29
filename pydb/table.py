@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, Iterator, Optional, Sequence, Tuple
 
-from .errors import SchemaError
+from .error import SchemaError
 from .index import Index
 
 # TODO: Move public schema stuff to schema.py?

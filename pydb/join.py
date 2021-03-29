@@ -1,12 +1,7 @@
 from enum import Enum
+from typing import Generic, Iterator, Optional, Tuple, TypeVar
+
 from .expr import Expr
-from typing import (
-    Iterator,
-    Generic,
-    TypeVar,
-    Tuple,
-    Optional,
-)
 
 A = TypeVar("A")
 B = TypeVar("B")

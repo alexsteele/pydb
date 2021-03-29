@@ -1,11 +1,5 @@
 import bisect
-from typing import (
-    TypeVar,
-    Optional,
-    Iterator,
-    Dict,
-    Generic,
-)
+from typing import Dict, Generic, Iterator, Optional, TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")

@@ -1,8 +1,9 @@
-from .expr import Expr
-from .table import ITable
-from .index import Index
 from dataclasses import dataclass
 from typing import Any
+
+from .expr import Expr
+from .index import Index
+from .table import ITable
 
 
 @dataclass

@@ -1,24 +1,12 @@
+import unittest
+
 import context
 
-from pydb.errors import SchemaError
-from pydb.table import (
-    Schema,
-    Column,
-    ColumnAttr,
-    DataType,
-)
-from pydb.query import (
-    BinExpr,
-    CreateTable,
-    Insert,
-    Select,
-    From,
-    Where,
-    Symbol,
-    Const,
-)
+from pydb.error import SchemaError
 from pydb.mem import MemDatabase, MemTable
-import unittest
+from pydb.query import (BinExpr, Const, CreateTable, From, Insert, Select,
+                        Symbol, Where)
+from pydb.table import Column, ColumnAttr, DataType, Schema
 
 SCHEMA = Schema(
     "students",

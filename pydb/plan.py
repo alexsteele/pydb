@@ -1,22 +1,11 @@
-from .query import (
-    Query,
-    Select,
-    Where,
-    Operand,
-    BinExpr,
-    Symbol,
-    Const,
-)
+from typing import Dict, Optional, Tuple
+
 from .expr import Expr, Rows
 from .lookup import IndexedLookup
 from .project import ColumnProjection
-from .scan import Scan, FilteredScan
+from .query import BinExpr, Const, Operand, Query, Select, Symbol, Where
+from .scan import FilteredScan, Scan
 from .table import ITable
-from typing import (
-    Tuple,
-    Dict,
-    Optional,
-)
 
 
 class Planner:

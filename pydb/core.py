@@ -1,6 +1,6 @@
-from .query import Query
+from typing import Iterable, Text, Tuple, Union
 
-from typing import Text, Union, Iterable, Tuple
+from .query import Query
 
 
 class Cursor(Iterable[Tuple]):
