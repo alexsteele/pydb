@@ -84,6 +84,17 @@ class MemDatabaseTestCase(unittest.TestCase):
         ))
         self.assertEqual(list(results), students[1:])
 
+    def test_select_column_subset(self):
+        assert "name" in SCHEMA.column_names()
+        assert "age" in SCHEMA.column_names()
+        student = (0, "ark", 10)
+        self._insert(student)
+        results = self.db.exec(Select(
+            ("name", "age"),
+            From("students"),
+        ))
+        self.assertEqual(list(results), [("ark", 10)])
+
     def test_create_table_bad_schema(self):
         pass
 
@@ -94,19 +105,6 @@ class MemDatabaseTestCase(unittest.TestCase):
         pass
 
     def test_select_bad_column_name(self):
-        pass
-
-    def test_select_no_filter(self):
-        pass
-
-    def test_select_column_subset(self):
-        pass
-
-    def test_where_multiple_matches(self):
-        pass
-
-    def test_where_key_lookup(self):
-        # present key, missing key
         pass
 
     def _insert(self, *rows):
