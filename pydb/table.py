@@ -4,9 +4,11 @@ from typing import (
     Tuple,
     Sequence,
     Dict,
+    Optional,
 )
 from enum import Enum
 from dataclasses import dataclass
+from .index import Index
 
 
 class DataType(Enum):
@@ -36,6 +38,9 @@ class Column:
             **kwattrs,
         }
 
+    def hasattr(self, attr):
+        return attr in self.attrs
+
 
 @dataclass(init=False)
 class Schema:
@@ -63,5 +68,14 @@ class ITable:
     def schema(self) -> Schema:
         pass
 
+    def insert(self, row: Tuple) -> Tuple[int, Tuple]:
+        pass
+
+    def get(self, rowid: int) -> Optional[Tuple]:
+        pass
+
     def rows(self) -> Iterator[Tuple]:
+        pass
+
+    def indexes(self, column: Optional[str] = None) -> Sequence[Index]:
         pass

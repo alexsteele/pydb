@@ -39,8 +39,8 @@ class RangeIndex(Index):
 
 
 class HashIndex(Index):
-    def __init__(self, index: Dict[K, V] = {}):
-        self._index = index
+    def __init__(self, index: Dict[K, V] = None):
+        self._index = index or {}
 
     def insert(self, key, val):
         if key in self._index:
