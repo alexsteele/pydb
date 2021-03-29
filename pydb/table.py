@@ -49,8 +49,8 @@ class Schema:
     def columnid(self, name):
         return next(i for i, c in enumerate(self.columns) if c.name == name)
 
-    def columnids(self, *names):
-        return map(self.columnid, names) if names else range(len(self.columns))
+    def columnids(self, *names) -> Sequence[int]:
+        return tuple(map(self.columnid, names) if names else range(len(self.columns)))
 
     def column_names(self):
         return tuple(c.name for c in self.columns)

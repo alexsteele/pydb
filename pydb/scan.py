@@ -8,6 +8,7 @@ from typing import (
     Sequence,
 )
 
+
 @dataclass
 class Scan(Expr):
     expr: Expr
@@ -23,8 +24,6 @@ class FilteredScan(Expr):
 
     def exec(self):
         return (row for row in self.expr.exec() if self.filter(row))
-
-
 
 
 # TODO: seq->Expr?
