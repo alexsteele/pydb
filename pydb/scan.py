@@ -1,48 +1,55 @@
+from dataclasses import dataclass
 from .expr import Expr
+from .index import SortedIndex, RangeIndex
+from .table import ITable
 from typing import (
     TypeVar,
+    Callable,
+    Any,
+    Tuple,
+    Sequence,
 )
 
 T = TypeVar("T")
 V = TypeVar("V")
 
 
+@dataclass
 class Scan(Expr):
-    def __init__(self, expr: Expr):
-        self.expr = expr
+    expr: Expr
 
     def exec(self):
         return self.expr.exec()
 
 
+@dataclass
 class FilteredScan(Expr):
-    def __init__(self, expr, filterfn):
-        self.expr = expr
-        self.filter = filterfn
+    expr: Expr
+    filter: Callable[[Tuple], bool]
 
     def exec(self):
         return (row for row in self.expr.exec() if self.filter(row))
 
 
+
+
 # TODO: seq->Expr?
-
-
+@dataclass
 class SortedIndexScan:
-    def __init__(self, seq, index, key):
-        self.seq = seq
-        self.index = index
-        self.key = key
+    seq: Sequence[Tuple]
+    index: SortedIndex
+    key: Any
 
     def exec(self):
         return (self.seq[rid] for rid in self.index.scan(key))
 
 
+@dataclass
 class RangeIndexedScan(Expr):
-    def __init__(self, seq, index, start, end):
-        self.seq = seq
-        self.index = index
-        self.start = start
-        self.end = end
+    seq: Sequence[Tuple]
+    index: RangeIndex
+    start: Any
+    end: Any
 
     def exec(self):
         return (self.seq[rid] for rid in self.index.scan(self.start, self.end))
