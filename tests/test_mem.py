@@ -7,10 +7,14 @@ from pydb.table import (
     DataType,
 )
 from pydb.query import (
+    BinExpr,
     CreateTable,
     Insert,
     Select,
     From,
+    Where,
+    Symbol,
+    Const,
 )
 from pydb.mem import MemDatabase, MemTable
 import unittest
@@ -21,6 +25,7 @@ SCHEMA = Schema(
     Column("name", DataType.STRING),
     Column("age", DataType.INT),
 )
+
 
 class MemTableTestCase(unittest.TestCase):
     def test_mem_table(self):
@@ -36,31 +41,50 @@ class MemTableTestCase(unittest.TestCase):
         self.assertEqual(table.get(rowid), row)
         self.assertEqual(list(table.rows()), [row])
 
+
 class MemDatabaseTestCase(unittest.TestCase):
-    def test_basic(self):
-        db = MemDatabase("test")
-        db.exec(CreateTable(SCHEMA))
-        student = (0, "jane", 42)
-        db.exec(
-            Insert(
-                "students",
-                columns=("id", "name", "age"),
-                values=student
-            )
-        )
-        results = db.exec(
-            Select(
-                ("id", "name", "age"),
-                From("students"),
-            )
-        )
-        results = list(results)
-        self.assertEqual(results, [student])
+    def setUp(self):
+        self.db = MemDatabase("test")
+        self.db.exec(CreateTable(SCHEMA))
+
+    def test_simple_select(self):
+        students = [
+            (0, "ark", 42),
+            (1, "bam", 43),
+        ]
+        self._insert(*students)
+        results = self.db.exec(Select(SCHEMA.column_names(), From("students")))
+        self.assertEqual(list(results), students)
+
+    def test_select_by_primary_key(self):
+        students = [
+            (0, "ark", 10),
+            (1, "bam", 11),
+            (2, "cam", 12),
+        ]
+        self._insert(*students)
+        results = self.db.exec(Select(
+            SCHEMA.column_names(),
+            From("students"),
+            Where(BinExpr("=", Symbol("id"), Const(1)))
+        ))
+        self.assertEqual(list(results), [students[1]])
+
+    def test_select_with_name_filter(self):
+        students = [
+            (0, "ark", 10),
+            (1, "bam", 11),
+            (2, "bam", 12),
+        ]
+        self._insert(*students)
+        results = self.db.exec(Select(
+            SCHEMA.column_names(),
+            From("students"),
+            Where(BinExpr("=", Symbol("name"), Const("bam")))
+        ))
+        self.assertEqual(list(results), students[1:])
 
     def test_create_table_bad_schema(self):
-        # empty schema
-        # no primary key
-        # multiple primary keys
         pass
 
     def test_create_table_already_exists(self):
@@ -84,3 +108,9 @@ class MemDatabaseTestCase(unittest.TestCase):
     def test_where_key_lookup(self):
         # present key, missing key
         pass
+
+    def _insert(self, *rows):
+        results = []
+        for row in rows:
+            results.append(self.db.exec(Insert("students", SCHEMA.column_names(), row)))
+        return results

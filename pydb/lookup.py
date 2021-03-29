@@ -1,12 +1,18 @@
 from .expr import Expr
+from .table import ITable
+from .index import Index
+from dataclasses import dataclass
+from typing import Any
 
 
+@dataclass
 class IndexedLookup(Expr):
-    def __init__(self, seq, index, key):
-        self.seq = seq
-        self.index = index
-        self.key = key
+    table: ITable
+    index: Index[Any, int]
+    key: Any
 
     def exec(self):
-        rid = self.index.find(self.key)
-        return (self.seq[rid]) if rid else ()
+        rowid = self.index.find(self.key)
+        if not rowid:
+            return ()
+        return (self.table.get(rowid),)
