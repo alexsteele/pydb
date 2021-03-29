@@ -5,7 +5,7 @@ from .index import HashIndex, Index
 from .parse import parse_query
 from .plan import SimplePlanner
 from .query import CreateTable, Insert, Select
-from .table import Column, ColumnAttr, Dict, ITable, Schema
+from .table import Column, ColumnAttr, Dict, ITable, Schema, check_schema
 
 
 class MemCursor(Cursor):
@@ -79,6 +79,7 @@ class MemDatabase(Database):
         raise NotImplementedError("unsupported query type: {}".format(type(query)))
 
     def _create_table(self, query: CreateTable) -> Cursor:
+        check_schema(query.schema)
         if query.schema.name in self._tables:
             raise ValueError("{} already exists".format(query.schema.name))
         self._tables[query.schema.name] = MemTable(query.schema)

@@ -1,16 +1,12 @@
-from typing import (
-    Any,
-    Iterator,
-    Tuple,
-    Sequence,
-    Dict,
-    Optional,
-)
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, Iterator, Optional, Sequence, Tuple
+
+from .errors import SchemaError
 from .index import Index
 
 # TODO: Move public schema stuff to schema.py?
+
 
 class DataType(Enum):
     INT = "INT"
@@ -18,11 +14,11 @@ class DataType(Enum):
 
 
 class ColumnAttr(Enum):
-    PRIMARY_KEY = "PRIMARY_KEY"
     AUTO_INCREMENT = "AUTO_INCREMENT"
-    NOT_NULL = "NOT_NULL"
-    UNIQUE = "UNIQUE"
     DEFAULT = "DEFAULT"
+    NOT_NULL = "NOT_NULL"
+    PRIMARY_KEY = "PRIMARY_KEY"
+    UNIQUE = "UNIQUE"
 
 
 @dataclass(init=False)
@@ -43,6 +39,11 @@ class Column:
         return attr in self.attrs
 
 
+def check_column(col: Column):
+    if not col.name:
+        raise SchemaError("column name must not be empty")
+
+
 @dataclass(init=False)
 class Schema:
     name: str
@@ -60,6 +61,17 @@ class Schema:
 
     def column_names(self):
         return tuple(c.name for c in self.columns)
+
+
+def check_schema(schema: Schema):
+    if not schema.name:
+        raise SchemaError("name must not be empty")
+    if not schema.columns:
+        raise SchemaError("columns must not be empty")
+    if len(set(schema.column_names())) != len(schema.column_names()):
+        raise SchemaError("duplicate column name")
+    for col in schema.columns:
+        check_column(col)
 
 
 class ITable:

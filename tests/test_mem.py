@@ -1,5 +1,6 @@
 import context
 
+from pydb.errors import SchemaError
 from pydb.table import (
     Schema,
     Column,
@@ -63,11 +64,13 @@ class MemDatabaseTestCase(unittest.TestCase):
             (2, "cam", 12),
         ]
         self._insert(*students)
-        results = self.db.exec(Select(
-            SCHEMA.column_names(),
-            From("students"),
-            Where(BinExpr("=", Symbol("id"), Const(1)))
-        ))
+        results = self.db.exec(
+            Select(
+                SCHEMA.column_names(),
+                From("students"),
+                Where(BinExpr("=", Symbol("id"), Const(1))),
+            )
+        )
         self.assertEqual(list(results), [students[1]])
 
     def test_select_with_name_filter(self):
@@ -77,11 +80,13 @@ class MemDatabaseTestCase(unittest.TestCase):
             (2, "bam", 12),
         ]
         self._insert(*students)
-        results = self.db.exec(Select(
-            SCHEMA.column_names(),
-            From("students"),
-            Where(BinExpr("=", Symbol("name"), Const("bam")))
-        ))
+        results = self.db.exec(
+            Select(
+                SCHEMA.column_names(),
+                From("students"),
+                Where(BinExpr("=", Symbol("name"), Const("bam"))),
+            )
+        )
         self.assertEqual(list(results), students[1:])
 
     def test_select_column_subset(self):
@@ -89,14 +94,29 @@ class MemDatabaseTestCase(unittest.TestCase):
         assert "age" in SCHEMA.column_names()
         student = (0, "ark", 10)
         self._insert(student)
-        results = self.db.exec(Select(
-            ("name", "age"),
-            From("students"),
-        ))
+        results = self.db.exec(
+            Select(
+                ("name", "age"),
+                From("students"),
+            )
+        )
         self.assertEqual(list(results), [("ark", 10)])
 
     def test_create_table_bad_schema(self):
-        pass
+        with self.assertRaises(SchemaError):
+            self.db.exec(CreateTable(Schema("")))
+        with self.assertRaises(SchemaError):
+            self.db.exec(CreateTable(Schema("foo")))
+        with self.assertRaises(SchemaError):
+            self.db.exec(
+                CreateTable(
+                    Schema(
+                        "foo",
+                        Column("bar", DataType.STRING),
+                        Column("bar", DataType.INT),
+                    )
+                )
+            )
 
     def test_create_table_already_exists(self):
         pass
