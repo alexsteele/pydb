@@ -92,3 +92,6 @@ class ITable(Protocol):
 
     def indexes(self, column: Optional[str] = None) -> Sequence[Index]:
         pass
+
+    def __str__(self):
+        return f"{type(self).__name__}(name={self.name()})"
