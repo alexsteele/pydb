@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Iterator, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterator, Optional, Protocol, Sequence, Tuple
 
 from .error import SchemaError
 from .index import Index
@@ -74,7 +74,7 @@ def check_schema(schema: Schema):
         check_column(col)
 
 
-class ITable:
+class ITable(Protocol):
     def name(self) -> str:
         return self.schema().name
 
