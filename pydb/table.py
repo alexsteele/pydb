@@ -27,12 +27,12 @@ class Column:
     dtype: DataType
     attrs: Dict[ColumnAttr, Any]
 
-    def __init__(self, name, dtype, *attrs, kwattrs={}):
+    def __init__(self, name, dtype, *attrs, kwattrs=None):
         self.name = name
         self.dtype = dtype
         self.attrs = {
             **{attr: True for attr in attrs},
-            **kwattrs,
+            **(kwattrs or {}),
         }
 
     def hasattr(self, attr):
