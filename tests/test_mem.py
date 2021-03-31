@@ -4,8 +4,7 @@ import context
 
 from pydb.error import SchemaError
 from pydb.mem import MemDatabase, MemTable
-from pydb.query import (BinExpr, Const, CreateTable, From, Insert, Select,
-                        Symbol, Where)
+from pydb.query import BinExpr, Const, CreateTable, From, Insert, Select, Symbol, Where
 from pydb.table import Column, ColumnAttr, DataType, Schema
 
 SCHEMA = Schema(

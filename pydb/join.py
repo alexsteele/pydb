@@ -7,7 +7,7 @@ A = TypeVar("A")
 B = TypeVar("B")
 
 
-class JoinType(Enum):
+class JoinKind(Enum):
     INNER = "INNER"
     LEFT_OUTER = "LEFT_OUTER"
     RIGHT_OUTER = "RIGHT_OUTER"

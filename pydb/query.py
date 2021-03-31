@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Optional, Sequence
 
 from .table import Schema
+from .join import JoinKind
 
 
 class Query:
@@ -48,6 +49,18 @@ class Insert(Query):
 @dataclass
 class From:
     table: str
+
+
+@dataclass
+class On:
+    condition: QueryExpr
+
+
+@dataclass
+class Join:
+    tables: Sequence[str]
+    condition: Optional[QueryExpr] = None
+    kind: JoinKind = JoinKind.INNER
 
 
 @dataclass
