@@ -8,24 +8,7 @@ class Query:
     pass
 
 
-@dataclass
-class CreateTable(Query):
-    schema: Schema
-
-
-@dataclass
-class Insert(Query):
-    table: str
-    columns: Sequence[str]
-    values: Sequence[Any]
-
-
-@dataclass
-class From:
-    table: str
-
-
-class WhereExpr:
+class QueryExpr:
     pass
 
 
@@ -44,15 +27,32 @@ class Const(Operand):
 
 
 @dataclass
-class BinExpr(WhereExpr):
+class BinExpr(QueryExpr):
     op: str
     left: Operand
     right: Operand
 
 
 @dataclass
+class CreateTable(Query):
+    schema: Schema
+
+
+@dataclass
+class Insert(Query):
+    table: str
+    columns: Sequence[str]
+    values: Sequence[Any]
+
+
+@dataclass
+class From:
+    table: str
+
+
+@dataclass
 class Where:
-    condition: WhereExpr
+    condition: QueryExpr
 
 
 @dataclass
