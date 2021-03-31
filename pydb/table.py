@@ -16,10 +16,10 @@ class DataType(Enum):
 class ColumnAttr(Enum):
     AUTO_INCREMENT = "AUTO_INCREMENT"
     DEFAULT = "DEFAULT"
+    FOREIGN_KEY = "FOREIGN_KEY"
     NOT_NULL = "NOT_NULL"
     PRIMARY_KEY = "PRIMARY_KEY"
     UNIQUE = "UNIQUE"
-
 
 @dataclass(init=False)
 class Column:
