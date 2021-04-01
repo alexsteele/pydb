@@ -61,9 +61,8 @@ class JoinKind(Enum):
 @dataclass
 class Join:
     tables: Sequence[str]
-    condition: Optional[QueryExpr] = None
+    condition: Optional[On] = None
     kind: JoinKind = JoinKind.INNER
-
 
 @dataclass
 class From:
