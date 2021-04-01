@@ -1,5 +1,8 @@
 from enum import Enum
-from typing import Generic, Iterator, Optional, Tuple, TypeVar
+from .table import ITable
+from .index import Index
+from dataclasses import dataclass
+from typing import Any, Generic, Iterator, Optional, Tuple, TypeVar
 
 from .expr import Expr
 
@@ -30,6 +33,26 @@ class RightOuterJoin(Join, Generic[A, B]):
 class FullOuterJoin(Join, Generic[A, B]):
     def exec(self) -> Iterator[Tuple[Optional[A], Optional[B]]]:
         pass
+
+
+@dataclass
+class IndexedJoin(InnerJoin):
+    expr: Expr
+    column: int
+    index: Index[Any, int]
+    table: ITable
+
+    def exec(self):
+        for row1 in self.expr.exec():
+            rowid = self.index.find(row1[self.column])
+            if rowid:
+                row2 = self.table.get(rowid)
+                assert row2 is not None
+                yield (*row1, *row2)
+
+
+# TODO: dataclass
+# TODO: return flattened tuples
 
 
 class NestedLoopJoin(InnerJoin):

@@ -6,14 +6,15 @@ V = TypeVar("V")
 
 
 class Index(Generic[K, V]):
+    def find(self, key: K) -> Optional[V]:
+        pass
+
     def insert(self, key: K, val: V):
         pass
 
     def update(self, key: K, val, V) -> Optional[V]:
         pass
 
-    def find(self, key: K) -> Optional[V]:
-        pass
 
 
 class SortedIndex(Index):
