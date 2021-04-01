@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Optional, Sequence
+from typing import Any, Optional, Sequence, Union
 
 from .table import Schema
 from .join import JoinKind
@@ -45,12 +45,6 @@ class Insert(Query):
     columns: Sequence[str]
     values: Sequence[Any]
 
-
-@dataclass
-class From:
-    table: str
-
-
 @dataclass
 class On:
     condition: QueryExpr
@@ -61,6 +55,11 @@ class Join:
     tables: Sequence[str]
     condition: Optional[QueryExpr] = None
     kind: JoinKind = JoinKind.INNER
+
+
+@dataclass
+class From:
+    table: Union[str, Join]
 
 
 @dataclass
