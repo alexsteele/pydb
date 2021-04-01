@@ -7,13 +7,7 @@ A = TypeVar("A")
 B = TypeVar("B")
 
 
-class JoinKind(Enum):
-    INNER = "INNER"
-    LEFT_OUTER = "LEFT_OUTER"
-    RIGHT_OUTER = "RIGHT_OUTER"
-    FULL_OUTER = "FULL_OUTER"
-
-
+# TODO: JoinExpr?
 class Join(Expr):
     pass
 

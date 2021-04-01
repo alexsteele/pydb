@@ -1,8 +1,8 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Optional, Sequence, Union
 
 from .table import Schema
-from .join import JoinKind
 
 
 class Query:
@@ -45,9 +45,17 @@ class Insert(Query):
     columns: Sequence[str]
     values: Sequence[Any]
 
+
 @dataclass
 class On:
     condition: QueryExpr
+
+
+class JoinKind(Enum):
+    INNER = "INNER"
+    LEFT_OUTER = "LEFT_OUTER"
+    RIGHT_OUTER = "RIGHT_OUTER"
+    FULL_OUTER = "FULL_OUTER"
 
 
 @dataclass
