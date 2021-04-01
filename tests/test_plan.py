@@ -6,8 +6,9 @@ from pydb.expr import Rows
 from pydb.lookup import IndexedLookup
 from pydb.mem import MemTable
 from pydb.plan import SimplePlanner
+from pydb.join import HashJoin, NestedLoopJoin, IndexedJoin
 from pydb.project import ColumnProjection
-from pydb.query import BinExpr, Const, From, Select, Symbol, Where
+from pydb.query import BinExpr, Const, From, Select, Symbol, Where, Join, On, JoinKind
 from pydb.scan import Scan
 from pydb.table import Column, ColumnAttr, DataType, Schema
 
@@ -51,4 +52,35 @@ class SimplePlannerTestCase(unittest.TestCase):
         plan = self.planner.plan(query)
         index = self.table.indexes("id")[0]
         expected = IndexedLookup(self.table, index, 42)
+        self.assertEqual(plan, expected)
+
+    def test_indexed_join(self):
+        table2 = MemTable(
+            Schema("signups", Column("sid", DataType.INT, ColumnAttr.PRIMARY_KEY))
+        )
+        query = Select(
+            ("students.name", "signups.sid"),
+            From(
+                Join(
+                    ("students", "signups"),
+                    On(BinExpr("=", Symbol("students.id"), Symbol("signups.sid"))),
+                    JoinKind.INNER,
+                )
+            ),
+        )
+        # TODO: Ideally we'd compare cardinality of the tables to decide the join order
+        assert any(table2.indexes("sid"))
+        expected = ColumnProjection(
+            IndexedJoin(
+                Scan(Rows(self.table)),
+                table2.schema().columnid("sid"),
+                table2.indexes("sid")[0],
+                table2,
+            ),
+            (
+                students.columnid("name"),
+                len(students.columns) + table2.schema().columnid("sid"),
+            ),
+        )
+        plan = self.planner.plan(query)
         self.assertEqual(plan, expected)
