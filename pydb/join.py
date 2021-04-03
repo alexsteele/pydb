@@ -2,7 +2,15 @@ from enum import Enum
 from .table import ITable
 from .index import Index
 from dataclasses import dataclass
-from typing import Any, Generic, Iterator, Optional, Tuple, TypeVar
+from typing import (
+    Any,
+    Generic,
+    Iterator,
+    Optional,
+    Tuple,
+    TypeVar,
+    Protocol,
+)
 
 from .expr import Expr
 
@@ -55,18 +63,31 @@ class IndexedJoin(InnerJoin):
 # TODO: return flattened tuples
 
 
+class JoinCondition(Protocol):
+    def test(row1: Tuple, row2: Tuple) -> bool:
+        pass
+
+
+@dataclass
+class ColumnEquals(JoinCondition):
+    col1: int
+    col2: int
+
+    def test(row1, row2):
+        return row1[self.col1] == row2[self.col2]
+
+
+@dataclass
 class NestedLoopJoin(InnerJoin):
-    def __init__(self, exp1, keyfn1, exp2, keyfn2):
-        self.exp1
-        self.keyfn1 = keyfn1
-        self.exp2 = exp2
-        self.keyfn2 = keyfn2
+    exp1: Expr
+    exp2: Expr
+    cond: JoinCondition
 
     def exec(self):
-        for a in self.exp1.exec():
-            for b in self.exp2.exec():
-                if self.keyfn1(a) == self.keyfn2(b):
-                    yield (a, b)
+        for row1 in self.exp1.exec():
+            for row2 in self.exp2.exec():
+                if self.cond.test(row1, row2):
+                    yield (*row1, *row2)
 
 
 class HashJoin(InnerJoin):
