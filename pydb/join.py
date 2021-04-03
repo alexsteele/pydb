@@ -1,4 +1,5 @@
 from enum import Enum
+from collections import defaultdict
 from .table import ITable
 from .index import Index
 from dataclasses import dataclass
@@ -90,20 +91,20 @@ class NestedLoopJoin(InnerJoin):
                     yield (*row1, *row2)
 
 
+@dataclass
 class HashJoin(InnerJoin):
-    def __init__(self, exp1, keyfn1, exp2, keyfn2):
-        self.exp1
-        self.keyfn1 = keyfn1
-        self.exp2 = exp2
-        self.keyfn2 = keyfn2
+    exp1: Expr
+    exp2: Expr
+    col1: int
+    col2: int
 
     def exec(self):
-        sentinel = object()
-        index = {self.keyfn1(a): a for a in self.exp1.exec()}
-        for b in self.exp2.exec():
-            a = index.get(keyfn2(b), sentinel)
-            if a is not sentinel:
-                yield (a, b)
+        index = defaultdict(list)
+        for row1 in self.exp1.exec():
+            index[row1[self.col1]].append(row1)
+        for row2 in self.exp2.exec():
+            for row1 in index[row2[self.col2]]:
+                yield (*row1, *row1)
 
 
 class MergeJoin(InnerJoin):
