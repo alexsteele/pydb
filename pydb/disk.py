@@ -1,5 +1,10 @@
 from dataclasses import dataclass
-from typing import Iterator, Optional, Tuple
+from typing import (
+    Iterator,
+    Optional,
+    Tuple,
+    List,
+)
 
 from .core import Database
 from .index import HashIndex, Index
@@ -17,7 +22,7 @@ class HeapFile:
     def append(self, row: Tuple) -> int:
         pass
 
-    def __iter__(self) -> Iterator[int, Tuple]:
+    def __iter__(self) -> Iterator[Tuple[int, Tuple]]:
         pass
 
 
@@ -29,7 +34,7 @@ class IndexSnapshot:
     def save(self, path: str):
         pass
 
-    def load(self, path: str) -> Snapshot:
+    def load(self, path: str) -> IndexSnapshot:
         pass
 
 
@@ -37,8 +42,8 @@ class DiskTable(ITable):
     def __init__(self, schema: Schema, file: HeapFile):
         self._schema = schema
         self._file = file
-        self._row_index = []  # rowid -> offset
-        self._col_indexes = []  # colid -> Index
+        self._row_index = []  # type: List[int] # rowid -> offset
+        self._col_indexes = []  # type: List[Index] # colid -> Index
 
     @staticmethod
     def open(self, root_path: str) -> DiskTable:
@@ -55,7 +60,7 @@ class DiskTable(ITable):
     def close(self):
         pass
 
-    def insert(self, row: Tuple) -> (int, Tuple):
+    def insert(self, row: Tuple) -> Tuple[int, Tuple]:
         pass
 
     def get(self, rowid: int) -> Optional[Tuple]:
