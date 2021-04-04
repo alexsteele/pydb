@@ -48,7 +48,7 @@ class Insert(Query):
 
 @dataclass
 class On:
-    condition: QueryExpr
+    expr: QueryExpr
 
 
 class JoinKind(Enum):

@@ -70,7 +70,7 @@ class SimplePlanner:
         assert clause.condition, "TODO: support natural join"
         assert isinstance(clause.condition, On)
 
-        condition = clause.condition.condition
+        condition = clause.condition.expr
 
         assert isinstance(condition, BinExpr)
         assert condition.op == "="
