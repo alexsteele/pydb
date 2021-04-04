@@ -24,7 +24,7 @@ class FilteredScan(Expr):
 
 # TODO: seq->Expr?
 @dataclass
-class SortedIndexScan:
+class SortedIndexScan(Expr):
     seq: Sequence[Tuple]
     index: SortedIndex
     key: Any
