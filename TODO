@@ -1,7 +1,5 @@
 
 - Add more JOIN tests
-- Query DSL
-- Support NULL, autoinc, etc.
 - Database initialization
 - Support select expressions (select *; select foo+1)
 - Support aggregations

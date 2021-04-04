@@ -1,12 +1,10 @@
+from . import context
 import unittest
-
-import context
-
 from pydb.expr import Rows
 from pydb.lookup import IndexedLookup
 from pydb.mem import MemTable
 from pydb.plan import SimplePlanner
-from pydb.join import HashJoin, NestedLoopJoin, IndexedJoin, ColumnEquals
+from pydb.join import HashJoin, IndexedJoin
 from pydb.project import ColumnProjection
 from pydb.query import BinExpr, Const, From, Select, Symbol, Where, Join, On, JoinKind
 from pydb.scan import Scan

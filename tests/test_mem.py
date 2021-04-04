@@ -1,7 +1,6 @@
+from . import context
+
 import unittest
-
-import context
-
 from pydb.error import SchemaError
 from pydb.mem import MemDatabase, MemTable
 from pydb.query import (

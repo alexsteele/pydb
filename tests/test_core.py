@@ -1,5 +1,5 @@
+from . import context
 import unittest
-
 import pydb
 from pydb.query import CreateTable, From, Insert, Select
 from pydb.table import Column, ColumnAttr, DataType, Schema

@@ -1,7 +1,5 @@
+from . import context
 import unittest
-
-import context
-
 from pydb.query import *
 
 

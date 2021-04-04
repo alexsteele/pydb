@@ -19,3 +19,13 @@ with pydb.connect("mem:test") as db:
     result = db.exec(Select(("id", "name"), From("students")))
     assert list(result) == [(0, "ack")]
 ```
+
+# Setup
+
+```
+# Install requirements
+$ pip install -r requirements.txt
+
+# Run tests
+$ python -m pytest
+```
