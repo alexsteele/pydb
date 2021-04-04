@@ -4,7 +4,7 @@ A tiny relational database in python
 # Example
 
 ```
-from pydb import pydb_open
+import pydb
 from pydb.query import *
 
 schema = Schema(
@@ -13,7 +13,7 @@ schema = Schema(
     Column("name", DataType.STRING),
 )
 
-with pydb_open("mem:test") as db:
+with pydb.connect("mem:test") as db:
     db.exec(CreateTable(schema))
     db.exec(Insert("students", ("id", "name"), (0, "ack")))
     result = db.exec(Select(("id", "name"), From("students")))

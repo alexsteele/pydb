@@ -1,6 +1,6 @@
 import unittest
 
-from pydb import Database, pydb_open
+import pydb
 from pydb.query import CreateTable, From, Insert, Select
 from pydb.table import Column, ColumnAttr, DataType, Schema
 
@@ -13,7 +13,7 @@ class PydbInterfaceTestCase(unittest.TestCase):
             Column("name", DataType.STRING),
         )
 
-        with pydb_open("mem:test") as db:
+        with pydb.connect("mem:test") as db:
             db.exec(CreateTable(schema))
             db.exec(Insert("students", ("id", "name"), (0, "ack")))
             result = db.exec(Select(("id", "name"), From("students")))
