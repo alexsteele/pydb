@@ -64,6 +64,7 @@ class Join:
     condition: Optional[On] = None
     kind: JoinKind = JoinKind.INNER
 
+
 @dataclass
 class From:
     table: Union[str, Join]

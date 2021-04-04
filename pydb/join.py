@@ -1,4 +1,3 @@
-from enum import Enum
 from collections import defaultdict
 from .table import ITable
 from .index import Index
@@ -65,7 +64,7 @@ class IndexedJoin(InnerJoin):
 
 
 class JoinCondition(Protocol):
-    def test(row1: Tuple, row2: Tuple) -> bool:
+    def test(self, row1: Tuple, row2: Tuple) -> bool:
         pass
 
 

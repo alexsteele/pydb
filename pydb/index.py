@@ -16,7 +16,6 @@ class Index(Generic[K, V]):
         pass
 
 
-
 class SortedIndex(Index):
     def find(self, key):
         return next(self.scan(key), None)

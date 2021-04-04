@@ -21,6 +21,7 @@ class ColumnAttr(Enum):
     PRIMARY_KEY = "PRIMARY_KEY"
     UNIQUE = "UNIQUE"
 
+
 @dataclass(init=False)
 class Column:
     name: str
@@ -52,6 +53,9 @@ class Schema:
     def __init__(self, name, *columns):
         self.name = name
         self.columns = columns
+
+    def column(self, name):
+        return next(col for col in self.columns if col.name == name)
 
     def columnid(self, name):
         return next(i for i, c in enumerate(self.columns) if c.name == name)

@@ -6,7 +6,7 @@ from pydb.expr import Rows
 from pydb.lookup import IndexedLookup
 from pydb.mem import MemTable
 from pydb.plan import SimplePlanner
-from pydb.join import HashJoin, NestedLoopJoin, IndexedJoin
+from pydb.join import HashJoin, NestedLoopJoin, IndexedJoin, ColumnEquals
 from pydb.project import ColumnProjection
 from pydb.query import BinExpr, Const, From, Select, Symbol, Where, Join, On, JoinKind
 from pydb.scan import Scan
@@ -54,6 +54,40 @@ class SimplePlannerTestCase(unittest.TestCase):
         expected = IndexedLookup(self.table, index, 42)
         self.assertEqual(plan, expected)
 
+    @unittest.skip
+    def test_natural_join(self):
+        raise NotImplementedError()
+
+    def test_hash_join(self):
+        signups = Schema(
+            "signups",
+            Column("id", DataType.INT, ColumnAttr.PRIMARY_KEY),
+            Column("name", DataType.STRING),
+        )
+        table2 = MemTable(signups)
+        query = Select(
+            ("students.id", "signups.id"),
+            From(
+                Join(
+                    ("students", "signups"),
+                    On(BinExpr("=", Symbol("students.name"), Symbol("signups.name"))),
+                    JoinKind.INNER,
+                )
+            ),
+        )
+        expected = ColumnProjection(
+            HashJoin(
+                Scan(Rows(self.table)),
+                Scan(Rows(table2)),
+                students.columnid("name"),
+                signups.columnid("name"),
+            ),
+            (students.columnid("id"), len(students.columns) + signups.columnid("id")),
+        )
+        planner = SimplePlanner({"students": self.table, "signups": table2})
+        plan = planner.plan(query)
+        self.assertEqual(plan, expected)
+
     def test_indexed_join(self):
         table2 = MemTable(
             Schema("signups", Column("sid", DataType.INT, ColumnAttr.PRIMARY_KEY))
@@ -68,7 +102,6 @@ class SimplePlannerTestCase(unittest.TestCase):
                 )
             ),
         )
-        # TODO: Ideally we'd compare cardinality of the tables to decide the join order
         assert any(table2.indexes("sid"))
         expected = ColumnProjection(
             IndexedJoin(
@@ -82,5 +115,10 @@ class SimplePlannerTestCase(unittest.TestCase):
                 len(students.columns) + table2.schema().columnid("sid"),
             ),
         )
-        plan = self.planner.plan(query)
+        planner = SimplePlanner({"students": self.table, "signups": table2})
+        plan = planner.plan(query)
         self.assertEqual(plan, expected)
+
+    @unittest.skip
+    def test_join_where(self):
+        raise NotImplementedError()
