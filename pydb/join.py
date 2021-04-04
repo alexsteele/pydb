@@ -59,10 +59,6 @@ class IndexedJoin(InnerJoin):
                 yield (*row1, *row2)
 
 
-# TODO: dataclass
-# TODO: return flattened tuples
-
-
 class JoinCondition(Protocol):
     def test(self, row1: Tuple, row2: Tuple) -> bool:
         pass
@@ -103,7 +99,7 @@ class HashJoin(InnerJoin):
             index[row1[self.col1]].append(row1)
         for row2 in self.exp2.exec():
             for row1 in index[row2[self.col2]]:
-                yield (*row1, *row1)
+                yield (*row1, *row2)
 
 
 class MergeJoin(InnerJoin):

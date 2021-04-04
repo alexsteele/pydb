@@ -4,7 +4,18 @@ import context
 
 from pydb.error import SchemaError
 from pydb.mem import MemDatabase, MemTable
-from pydb.query import BinExpr, Const, CreateTable, From, Insert, Select, Symbol, Where
+from pydb.query import (
+    BinExpr,
+    Const,
+    CreateTable,
+    From,
+    Insert,
+    Select,
+    Symbol,
+    Where,
+    Join,
+    On,
+)
 from pydb.table import Column, ColumnAttr, DataType, Schema
 
 SCHEMA = Schema(
@@ -88,6 +99,48 @@ class MemDatabaseTestCase(unittest.TestCase):
             )
         )
         self.assertEqual(list(results), [("ark", 10)])
+
+    def test_select_join(self):
+        signups_schema = Schema(
+            "signups",
+            Column(
+                "id", DataType.INT, ColumnAttr.PRIMARY_KEY, ColumnAttr.AUTO_INCREMENT
+            ),
+            Column("sid", DataType.INT),
+            Column("timestamp", DataType.INT),
+        )
+        self.db.exec(CreateTable(signups_schema))
+        students = [
+            (0, "abe", 20),
+            (1, "bark", 30),
+            (2, "cab", 40),
+        ]
+        signups = [
+            (0, 0, 100),
+            (1, 1, 101),
+            (2, 2, 103),
+        ]
+        for student in students:
+            self._insert(student)
+        for signup in signups:
+            self.db.exec(Insert("signups", signups_schema.column_names(), signup))
+        results = self.db.exec(
+            Select(
+                ("students.name", "signups.timestamp"),
+                From(
+                    Join(
+                        ("students", "signups"),
+                        On(BinExpr("=", Symbol("students.id"), Symbol("signups.sid"))),
+                    )
+                ),
+            )
+        )
+        expected = [
+            ("abe", 100),
+            ("bark", 101),
+            ("cab", 103),
+        ]
+        self.assertEqual(list(results), expected)
 
     def test_create_table_bad_schema(self):
         with self.assertRaises(SchemaError):

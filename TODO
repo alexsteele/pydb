@@ -1,5 +1,5 @@
 
-- Support JOIN
+- Add more JOIN tests
 - Query DSL
 - Support NULL, autoinc, etc.
 - Database initialization
