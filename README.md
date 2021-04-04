@@ -6,6 +6,7 @@ A tiny relational database in python
 ```
 import pydb
 from pydb.query import *
+from pydb.table import *
 
 schema = Schema(
     "students",
