@@ -3,7 +3,7 @@
 A tiny relational database in python
 # Example
 
-```
+```python
 import pydb
 from pydb.query import *
 from pydb.table import *
@@ -23,7 +23,7 @@ with pydb.connect("mem:test") as db:
 
 # Setup
 
-```
+```bash
 # Install requirements
 $ pip install -r requirements.txt
 
