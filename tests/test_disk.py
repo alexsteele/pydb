@@ -38,3 +38,23 @@ class HeapFileTestCase(unittest.TestCase):
     @unittest.skip
     def test_heap_file_corruption(self):
         pass
+
+class DiskTableTestCase(unittest.TestCase):
+    def test_disk_table(self):
+        records = [
+            (0, "a", 0.0),
+            (1, "b", 1.1),
+            (2, "c", 2.2),
+        ]
+        row_ids = []
+        folder = tempfile.mkdtemp()
+        with DiskTable.open("test", folder) as table:
+            for record in records:
+                row_ids.append(table.insert(record)[0])
+            for row_id, record in zip(row_ids, records):
+                self.assertEqual(table.get(row_id), record)
+        with DiskTable.open("test", folder) as table:
+            for row_id, record in zip(row_ids, records):
+                self.assertEqual(table.get(row_id), record)
+            for record, row in zip(records, table.rows()):
+                self.assertEqual(record, row)

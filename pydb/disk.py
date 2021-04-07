@@ -4,16 +4,14 @@ from typing import (
     Optional,
     Tuple,
     List,
+    Sequence,
 )
 import struct
 import pickle
+import os.path
 from .core import Database
 from .index import HashIndex, Index
 from .table import ITable, Schema
-
-
-def save_index(index: Index, path: str):
-    pass
 
 
 class HeapFile:
@@ -34,6 +32,9 @@ class HeapFile:
     @staticmethod
     def open(path: str):
         return HeapFile(open(path, "ab+"))
+
+    def close(self):
+        self._file.close()
 
     def __enter__(self):
         return self
@@ -67,15 +68,18 @@ class HeapFile:
         record = pickle.loads(data)
         return record
 
-    # TODO: allow append(), get() while iterating
-    def __iter__(self) -> Iterator[Tuple[int, Tuple]]:
+    def scan(self, start=0) -> Iterator[Tuple[int, Tuple]]:
         self._file.seek(0, 2)
         end_offset = self._file.tell()
-        self._file.seek(0)
-        offset = 0
+        self._file.seek(start)
+        offset = start
         while offset < end_offset:
             yield offset, self.get()
             offset = self._file.tell()
+
+    # TODO: allow append(), get() while iterating
+    def __iter__(self) -> Iterator[Tuple[int, Tuple]]:
+        return self.scan()
 
     @staticmethod
     def _encode_size(size: int) -> bytes:
@@ -89,45 +93,47 @@ class HeapFile:
         return vals[0]
 
 
-@dataclass
-class IndexSnapshot:
-    row_index: List[int]
-    col_indexes: List[HashIndex]
-
-    def save(self, path: str):
-        pass
-
-    def load(self, path: str):
-        pass
-
-
+# TODO: Support secondary indexes
 class DiskTable(ITable):
-    def __init__(self, schema: Schema, file: HeapFile):
-        self._schema = schema
+    def __init__(self, file: HeapFile, row_index: List[int]):
         self._file = file
-        self._row_index = []  # type: List[int] # rowid -> offset
-        self._col_indexes = []  # type: List[Index] # colid -> Index
+        self._row_index = row_index  # rowid -> offset
 
     @staticmethod
-    def open(self, root_path: str):
-        # if table exists
-        #   rebuild indexes
-        # else
-        #   create heapfile
-        #   create snapshot file
-        pass
+    def open(name: str, folder: str):
+        file = HeapFile.open(os.path.join(folder, name + ".data"))
+        try:
+            row_index = []
+            for offset, _ in file.scan():
+                row_index.append(offset)
+            return DiskTable(file, row_index)
+        except:
+            file.close()
+            raise
 
-    def snapshot(self):
-        pass
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
 
     def close(self):
-        pass
+        self._file.close()
 
     def insert(self, row: Tuple) -> Tuple[int, Tuple]:
-        pass
+        offset = self._file.append(row)
+        self._row_index.append(offset)
+        return len(self._row_index) - 1, row
 
     def get(self, rowid: int) -> Optional[Tuple]:
-        pass
+        return self._file.get(self._row_index[rowid])
+
+    def rows(self) -> Iterator[Tuple]:
+        for offset, record in self._file.scan():
+            yield record
+
+    def indexes(self, column: Optional[str] = None) -> Sequence[Index]:
+        return []
 
 
 class DiskDatabase(Database):
