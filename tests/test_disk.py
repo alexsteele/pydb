@@ -39,6 +39,7 @@ class HeapFileTestCase(unittest.TestCase):
     def test_heap_file_corruption(self):
         pass
 
+
 class DiskTableTestCase(unittest.TestCase):
     def test_disk_table(self):
         records = [
