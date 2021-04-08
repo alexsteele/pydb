@@ -1,6 +1,6 @@
 from typing import Iterable, List, Tuple
 
-from .core import Cursor, Database, SimpleCursor
+from .core import Cursor, Database
 from .index import HashIndex, Index
 from .parse import parse_query
 from .plan import SimplePlanner
@@ -75,12 +75,12 @@ class MemDatabase(Database):
         if query.schema.name in self._tables:
             raise ValueError("{} already exists".format(query.schema.name))
         self._tables[query.schema.name] = MemTable(query.schema)
-        return SimpleCursor(())
+        return tuple()
 
     def _select(self, query: Select) -> Cursor:
         planner = SimplePlanner(self._tables)
         expr = planner.plan(query)
-        return SimpleCursor(expr.exec())
+        return expr.exec()
 
     def _insert(self, query: Insert) -> Cursor:
         if len(query.columns) != len(query.values):
@@ -92,4 +92,4 @@ class MemDatabase(Database):
             # TODO: Support auto-populated columns
             raise ValueError("columns don't match schema")
         rowid, row = table.insert(tuple(query.values))
-        return SimpleCursor((row))
+        return (row,)

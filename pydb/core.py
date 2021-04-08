@@ -3,7 +3,7 @@ from typing import Iterable, Protocol, Text, Tuple, Union
 from .query import Query
 
 
-class Cursor(Iterable[Tuple]):
+class Cursor(Protocol, Iterable[Tuple]):
     pass
 
 
@@ -22,11 +22,3 @@ class Database(Protocol):
 
     def close(self):
         pass
-
-
-class SimpleCursor(Cursor):
-    def __init__(self, rows: Iterable[Tuple]):
-        self.rows = rows
-
-    def __iter__(self):
-        return iter(self.rows)

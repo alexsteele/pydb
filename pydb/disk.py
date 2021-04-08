@@ -8,7 +8,7 @@ from typing import (
 import struct
 import pickle
 import os.path
-from .core import Database, SimpleCursor
+from .core import Database
 from .index import Index
 from .table import ITable, Schema
 from .core import Cursor, Database
@@ -195,12 +195,12 @@ class DiskDatabase(Database):
         if query.schema.name in self._tables:
             raise ValueError("{} already exists".format(query.schema.name))
         self._tables[query.schema.name] = DiskTable.open(query.schema, self._folder)
-        return SimpleCursor(())
+        return tuple()
 
     def _select(self, query: Select) -> Cursor:
         planner = SimplePlanner(self._tables)
         expr = planner.plan(query)
-        return SimpleCursor(expr.exec())
+        return expr.exec()
 
     def _insert(self, query: Insert) -> Cursor:
         if len(query.columns) != len(query.values):
@@ -212,7 +212,7 @@ class DiskDatabase(Database):
             # TODO: Support auto-populated columns
             raise ValueError("columns don't match schema")
         rowid, row = table.insert(tuple(query.values))
-        return SimpleCursor((row))
+        return (row,)
 
     @staticmethod
     def _load_manifest(folder):
