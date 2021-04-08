@@ -18,12 +18,16 @@ from pydb.query import (
 )
 from pydb.table import Column, ColumnAttr, DataType, Schema
 
-SCHEMA = Schema(
+STUDENTS_SCHEMA = Schema(
     "students",
     Column("id", DataType.INT, ColumnAttr.PRIMARY_KEY, ColumnAttr.AUTO_INCREMENT),
     Column("name", DataType.STRING),
     Column("age", DataType.INT),
 )
+
+
+def create_test_student(id: int):
+    return (id, "test", 99)
 
 
 class DatabaseTestCase:
@@ -32,7 +36,7 @@ class DatabaseTestCase:
     def initdb(self, db: Database):
         """Must be called in setUp()"""
         self.db = db
-        self.db.exec(CreateTable(SCHEMA))
+        self.db.exec(CreateTable(STUDENTS_SCHEMA))
 
     def test_simple_select(self):
         students = [
@@ -40,7 +44,7 @@ class DatabaseTestCase:
             (1, "bam", 43),
         ]
         self._insert(*students)
-        results = self.db.exec(Select(SCHEMA.column_names(), From("students")))
+        results = self.db.exec(Select(STUDENTS_SCHEMA.column_names(), From("students")))
         self.assertEqual(list(results), students)
 
     def test_select_by_primary_key(self):
@@ -52,7 +56,7 @@ class DatabaseTestCase:
         self._insert(*students)
         results = self.db.exec(
             Select(
-                SCHEMA.column_names(),
+                STUDENTS_SCHEMA.column_names(),
                 From("students"),
                 Where(BinExpr("=", Symbol("id"), Const(1))),
             )
@@ -68,7 +72,7 @@ class DatabaseTestCase:
         self._insert(*students)
         results = self.db.exec(
             Select(
-                SCHEMA.column_names(),
+                STUDENTS_SCHEMA.column_names(),
                 From("students"),
                 Where(BinExpr("=", Symbol("name"), Const("bam"))),
             )
@@ -76,8 +80,8 @@ class DatabaseTestCase:
         self.assertEqual(list(results), students[1:])
 
     def test_select_column_subset(self):
-        assert "name" in SCHEMA.column_names()
-        assert "age" in SCHEMA.column_names()
+        assert "name" in STUDENTS_SCHEMA.column_names()
+        assert "age" in STUDENTS_SCHEMA.column_names()
         student = (0, "ark", 10)
         self._insert(student)
         results = self.db.exec(
@@ -158,5 +162,7 @@ class DatabaseTestCase:
     def _insert(self, *rows):
         results = []
         for row in rows:
-            results.append(self.db.exec(Insert("students", SCHEMA.column_names(), row)))
+            results.append(
+                self.db.exec(Insert("students", STUDENTS_SCHEMA.column_names(), row))
+            )
         return results

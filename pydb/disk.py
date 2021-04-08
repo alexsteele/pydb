@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import (
     Iterator,
     Optional,
@@ -9,9 +8,15 @@ from typing import (
 import struct
 import pickle
 import os.path
-from .core import Database
-from .index import HashIndex, Index
+from .core import Database, SimpleCursor
+from .index import Index
 from .table import ITable, Schema
+from .core import Cursor, Database
+from .index import Index
+from .parse import parse_query
+from .plan import SimplePlanner
+from .query import CreateTable, Insert, Select
+from .table import Dict, ITable, Schema, check_schema
 
 
 class HeapFile:
@@ -95,21 +100,25 @@ class HeapFile:
 
 # TODO: Support secondary indexes
 class DiskTable(ITable):
-    def __init__(self, file: HeapFile, row_index: List[int]):
+    def __init__(self, schema: Schema, file: HeapFile, row_index: List[int]):
+        self._schema = schema
         self._file = file
         self._row_index = row_index  # rowid -> offset
 
     @staticmethod
-    def open(name: str, folder: str):
-        file = HeapFile.open(os.path.join(folder, name + ".data"))
+    def open(schema: Schema, folder: str):
+        file = HeapFile.open(os.path.join(folder, schema.name + ".data"))
         try:
             row_index = []
             for offset, _ in file.scan():
                 row_index.append(offset)
-            return DiskTable(file, row_index)
+            return DiskTable(schema, file, row_index)
         except:
             file.close()
             raise
+
+    def close(self):
+        self._file.close()
 
     def __enter__(self):
         return self
@@ -117,8 +126,8 @@ class DiskTable(ITable):
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
-    def close(self):
-        self._file.close()
+    def schema(self):
+        return self._schema
 
     def insert(self, row: Tuple) -> Tuple[int, Tuple]:
         offset = self._file.append(row)
@@ -136,7 +145,105 @@ class DiskTable(ITable):
         return []
 
 
+# TODO: Factor out code shared with MemDatabase?
 class DiskDatabase(Database):
+    def __init__(self, name: str, folder: str, tables: Dict[str, ITable]):
+        self._name = name
+        self._folder = folder
+        self._tables = tables
+
+    def exec(self, query, **options):
+        if isinstance(query, str):
+            query = parse_query(query)
+        if isinstance(query, CreateTable):
+            return self._create_table(query)
+        if isinstance(query, Select):
+            return self._select(query)
+        if isinstance(query, Insert):
+            return self._insert(query)
+        raise NotImplementedError("unsupported query type: {}".format(type(query)))
+
+    @classmethod
+    def open(cls, name, folder):
+        manifest = cls._load_manifest(folder)
+        tables = cls._open_tables(folder, manifest)
+        return DiskDatabase(name, folder, tables)
+
+    # TODO: Clean up error handling
+    def close(self):
+        error = None
+        for table in self._tables.values():
+            try:
+                table.close()
+            except Exception as err:
+                error = err
+        try:
+            self._save_manifest()
+        except Exception as err:
+            error = err
+        if error:
+            raise error
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def _create_table(self, query: CreateTable) -> Cursor:
+        check_schema(query.schema)
+        if query.schema.name in self._tables:
+            raise ValueError("{} already exists".format(query.schema.name))
+        self._tables[query.schema.name] = DiskTable.open(query.schema, self._folder)
+        return SimpleCursor(())
+
+    def _select(self, query: Select) -> Cursor:
+        planner = SimplePlanner(self._tables)
+        expr = planner.plan(query)
+        return SimpleCursor(expr.exec())
+
+    def _insert(self, query: Insert) -> Cursor:
+        if len(query.columns) != len(query.values):
+            raise ValueError("columns don't match values")
+        table = self._tables.get(query.table, None)
+        if not table:
+            raise ValueError("unrecognized table {}".format(query.table))
+        if query.columns != table.schema().column_names():
+            # TODO: Support auto-populated columns
+            raise ValueError("columns don't match schema")
+        rowid, row = table.insert(tuple(query.values))
+        return SimpleCursor((row))
+
     @staticmethod
-    def open(path: str):
-        pass
+    def _load_manifest(folder):
+        manifest_path = os.path.join(folder, "MANIFEST")
+        if not os.path.exists(manifest_path):
+            return {"table_schemas": []}
+        with open(manifest_path, "rb") as f:
+            manifest = pickle.load(f)
+        assert isinstance(manifest, dict)
+        assert "table_schemas" in manifest
+        return manifest
+
+    def _save_manifest(self):
+        manifest = {
+            "table_schemas": [table.schema() for table in self._tables.values()]
+        }
+        manifest_path = os.path.join(self._folder, "MANIFEST")
+        with open(manifest_path, "wb") as f:
+            pickle.dump(manifest, f)
+
+    @staticmethod
+    def _open_tables(folder, manifest):
+        tables = {}
+        try:
+            for schema in manifest["table_schemas"]:
+                tables[schema.name] = DiskTable.open(schema, folder)
+        except:
+            for table in tables.values():
+                try:
+                    table.close()
+                except:
+                    pass
+            raise
+        return tables
