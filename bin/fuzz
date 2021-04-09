@@ -1,14 +1,32 @@
 #!/usr/bin/env python3
 
-import sys
+import argparse
 import os
+import sys
+import tempfile
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import pydb
 from tests import Fuzzer
 
+
+def createdb(args):
+    if args.dbtype == "disk":
+        return pydb.connect(tempfile.mkdtemp())
+    elif args.dbtype == "mem":
+        return pydb.connect("mem:test")
+    else:
+        raise ValueError("unrecognized dbtype {}".format(args.dbtype))
+
+
 def main():
-    Fuzzer(pydb.connect("mem:test")).run()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dbtype", type=str, default="disk", help="disk|mem")
+    parser.add_argument("--duration", type=int, default=5, help="fuzzer duration sec")
+    args = parser.parse_args()
+    Fuzzer(createdb(args), duration=args.duration).run()
+
 
 if __name__ == "__main__":
     main()
