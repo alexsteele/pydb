@@ -8,6 +8,7 @@ from pydb.query import (
     BinExpr,
     Const,
     CreateTable,
+    Delete,
     From,
     Insert,
     Select,
@@ -150,8 +151,24 @@ class DatabaseTestCase:
                 )
             )
 
+    @unittest.skip
     def test_delete(self):
-        pass
+        students = [create_test_student(x) for x in range(10)]
+        self._insert(*students)
+        self.db.exec(Delete(From("students")))
+        results = list(
+            self.db.exec(Select(STUDENTS_SCHEMA.column_names(), From("students")))
+        )
+        self.assertEqual(results, [])
+
+        students = [(x, str(x % 2), 99) for x in range(10)]
+        self.db.exec(
+            Delete(From("students")), Where(BinExpr("=", Symbol("name"), Const("0")))
+        )
+        results = list(
+            self.db.exec(Select(STUDENTS_SCHEMA.column_names(), From("students")))
+        )
+        self.assertEqual(results, [s for s in students if s[1] != "0"])
 
     def test_create_table_already_exists(self):
         pass

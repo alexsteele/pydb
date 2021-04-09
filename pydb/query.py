@@ -81,6 +81,7 @@ class Select(Query):
     from_clause: From
     where_clause: Optional[Where] = None
 
+
 @dataclass
 class Delete(Query):
     table: From
