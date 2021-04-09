@@ -83,5 +83,5 @@ class Select(Query):
 
 @dataclass
 class Delete(Query):
-    table: str
+    table: From
     condition: Optional[Where] = None
