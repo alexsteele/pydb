@@ -147,8 +147,7 @@ class DiskTable(ITable):
 
 # TODO: Factor out code shared with MemDatabase?
 class DiskDatabase(Database):
-    def __init__(self, name: str, folder: str, tables: Dict[str, ITable]):
-        self._name = name
+    def __init__(self, folder: str, tables: Dict[str, ITable]):
         self._folder = folder
         self._tables = tables
 
@@ -164,10 +163,10 @@ class DiskDatabase(Database):
         raise NotImplementedError("unsupported query type: {}".format(type(query)))
 
     @classmethod
-    def open(cls, name, folder):
+    def open(cls, folder):
         manifest = cls._load_manifest(folder)
         tables = cls._open_tables(folder, manifest)
-        return DiskDatabase(name, folder, tables)
+        return DiskDatabase(folder, tables)
 
     # TODO: Clean up error handling
     def close(self):

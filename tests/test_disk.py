@@ -67,7 +67,7 @@ class DiskTableTestCase(unittest.TestCase):
 class DiskDatabaseTestCase(DatabaseTestCase, unittest.TestCase):
     def setUp(self):
         self.folder = tempfile.mkdtemp()
-        self.initdb(DiskDatabase.open("test", self.folder))
+        self.initdb(DiskDatabase.open(self.folder))
 
     def tearDown(self):
         error = None
@@ -81,11 +81,11 @@ class DiskDatabaseTestCase(DatabaseTestCase, unittest.TestCase):
 
     def test_open_close(self):
         students = [create_test_student(x) for x in range(10)]
-        with DiskDatabase.open("test", self.folder) as db:
+        with DiskDatabase.open(self.folder) as db:
             db.exec(CreateTable(STUDENTS_SCHEMA))
             for student in students:
                 db.exec(Insert("students", STUDENTS_SCHEMA.column_names(), student))
-        with DiskDatabase.open("test", self.folder) as db:
+        with DiskDatabase.open(self.folder) as db:
             results = db.exec(Select(STUDENTS_SCHEMA.column_names(), From("students")))
             results = list(results)
             results.sort(key=lambda s: s[0])
