@@ -164,6 +164,8 @@ class DiskDatabase(Database):
 
     @classmethod
     def open(cls, folder):
+        folder = os.path.abspath(folder)
+        cls._create_folder(folder)
         manifest = cls._load_manifest(folder)
         tables = cls._open_tables(folder, manifest)
         return DiskDatabase(folder, tables)
@@ -212,6 +214,15 @@ class DiskDatabase(Database):
             raise ValueError("columns don't match schema")
         rowid, row = table.insert(tuple(query.values))
         return (row,)
+
+    @staticmethod
+    def _create_folder(folder):
+        assert os.path.isabs(folder)
+        parent = os.path.dirname(folder)
+        if not os.path.exists(parent):
+            raise ValueError("missing parent folder {}".format(parent))
+        if not os.path.exists(folder):
+            os.mkdir(folder)
 
     @staticmethod
     def _load_manifest(folder):

@@ -79,6 +79,17 @@ class DiskDatabaseTestCase(DatabaseTestCase, unittest.TestCase):
         if error:
             raise error
 
+    def test_open_missing_parent_folder(self):
+        path = os.path.join(self.folder, "foo", "bar")
+        with self.assertRaises(ValueError):
+            with DiskDatabase.open(path) as db:
+                pass
+
+    def test_open_creates_folder(self):
+        path = os.path.join(self.folder, "foo")
+        with DiskDatabase.open(path) as db:
+            pass  # ok
+
     def test_open_close(self):
         students = [create_test_student(x) for x in range(10)]
         with DiskDatabase.open(self.folder) as db:
