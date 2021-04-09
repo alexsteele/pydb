@@ -26,8 +26,8 @@ STUDENTS_SCHEMA = Schema(
 )
 
 
-def create_test_student(id: int):
-    return (id, "test", 99)
+def create_test_student(sid: int):
+    return (sid, "test", 99)
 
 
 class DatabaseTestCase:
@@ -149,6 +149,9 @@ class DatabaseTestCase:
                     )
                 )
             )
+
+    def test_delete(self):
+        pass
 
     def test_create_table_already_exists(self):
         pass
