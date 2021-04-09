@@ -80,3 +80,8 @@ class Select(Query):
     exprs: Sequence[str]  # TODO: support select exprs
     from_clause: From
     where_clause: Optional[Where] = None
+
+@dataclass
+class Delete(Query):
+    table: str
+    condition: Optional[Where] = None

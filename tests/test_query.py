@@ -24,3 +24,10 @@ class QuerySyntaxTestCase(unittest.TestCase):
             ),
         )
         assert query
+
+    def test_delete_syntax(self):
+        query = Delete(From("foo"))
+        assert query
+
+        query = Delete(From("foo"), Where(BinExpr("=", Symbol("id"), Const(0))))
+        assert query
