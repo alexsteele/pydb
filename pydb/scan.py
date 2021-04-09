@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Sequence, Tuple
 
 from .expr import Expr
-from .index import RangeIndex, SortedIndex
+from .index import SortedIndex
 
 
 @dataclass
@@ -31,14 +31,3 @@ class SortedIndexScan(Expr):
 
     def exec(self):
         return (self.seq[rid] for rid in self.index.scan(key))
-
-
-@dataclass
-class RangeIndexedScan(Expr):
-    seq: Sequence[Tuple]
-    index: RangeIndex
-    start: Any
-    end: Any
-
-    def exec(self):
-        return (self.seq[rid] for rid in self.index.scan(self.start, self.end))
