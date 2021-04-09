@@ -1,4 +1,5 @@
 
+- Disk backed indexes
 - Add more JOIN tests
 - Database initialization
 - Support select expressions (select *; select foo+1)
