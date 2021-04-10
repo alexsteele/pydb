@@ -17,6 +17,7 @@ def test_row_header():
         buf.seek(0)
         assert h == RowHeader.read(buf)
 
+
 class HeapFileTestCase(unittest.TestCase):
     def test_heap_file(self):
         fd, path = tempfile.mkstemp("heap_file_test")
@@ -59,23 +60,27 @@ class HeapFileTestCase(unittest.TestCase):
 
 class DiskTableTestCase(unittest.TestCase):
     def test_disk_table(self):
-        records = [
-            (0, "a", 0.0),
-            (1, "b", 1.1),
-            (2, "c", 2.2),
-        ]
+        records = [create_test_student(x) for x in range(10)]
         row_ids = []
         folder = tempfile.mkdtemp()
-        with DiskTable.open(STUDENTS_SCHEMA, folder) as table:
-            for record in records:
-                row_ids.append(table.insert(record)[0])
-            for row_id, record in zip(row_ids, records):
-                self.assertEqual(table.get(row_id), record)
-        with DiskTable.open(STUDENTS_SCHEMA, folder) as table:
+
+        def check_table(table):
             for row_id, record in zip(row_ids, records):
                 self.assertEqual(table.get(row_id), record)
             for record, row in zip(records, table.rows()):
                 self.assertEqual(record, row)
+
+        with DiskTable.open(STUDENTS_SCHEMA, folder) as table:
+            for record in records:
+                row_ids.append(table.insert(record)[0])
+            check_table(table)
+        with DiskTable.open(STUDENTS_SCHEMA, folder) as table:
+            check_table(table)
+            for idx in (-1, 3, 0):
+                table.delete(row_ids[idx])
+                row_ids.pop(idx)
+                records.pop(idx)
+            check_table(table)
 
 
 class DiskDatabaseTestCase(DatabaseTestCase, unittest.TestCase):

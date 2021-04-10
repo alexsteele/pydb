@@ -38,6 +38,9 @@ class MemTable(ITable):
         self._rows.append(row)
         return (rowid, row)
 
+    def delete(self, rowid):
+        raise NotImplementedError()
+
     def get(self, rowid):
         return self._rows[rowid] if rowid in range(len(self._rows)) else None
 

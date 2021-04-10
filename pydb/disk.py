@@ -123,10 +123,10 @@ class HeapFile:
 
 # TODO: Support secondary indexes
 class DiskTable(ITable):
-    def __init__(self, schema: Schema, file: HeapFile, row_index: List[int]):
+    def __init__(self, schema: Schema, file: HeapFile, row_index: List[Optional[int]]):
         self._schema = schema
         self._file = file
-        self._row_index = row_index  # rowid -> offset
+        self._row_index = row_index  # rowid -> offset. offset = None for deleted rows
 
     @staticmethod
     def open(schema: Schema, folder: str):
@@ -157,11 +157,15 @@ class DiskTable(ITable):
         self._row_index.append(offset)
         return len(self._row_index) - 1, row
 
-    def remove(self, rowid: int):
-        pass
+    def delete(self, rowid: int):
+        self._file.remove(self._row_index[rowid])
+        self._row_index[rowid] = None
 
     def get(self, rowid: int) -> Optional[Tuple]:
-        return self._file.get(self._row_index[rowid])
+        offset = self._row_index[rowid]
+        if offset is None:
+            return None
+        return self._file.get(offset)
 
     def rows(self) -> Iterator[Tuple]:
         for offset, record in self._file.scan():

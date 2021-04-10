@@ -88,6 +88,9 @@ class ITable(Protocol):
     def insert(self, row: Tuple) -> Tuple[int, Tuple]:
         pass
 
+    def delete(self, rowid: int):
+        pass
+
     def get(self, rowid: int) -> Optional[Tuple]:
         pass
 
