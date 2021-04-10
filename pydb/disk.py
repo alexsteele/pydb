@@ -104,7 +104,6 @@ class HeapFile:
             header.tombstone = True
             self._file.seek(offset)
             header.write(self._file)
-            self._file.seek(offset)
 
     def scan(self, start=0) -> Iterator[Tuple[int, Tuple]]:
         self._file.seek(0, io.SEEK_END)
