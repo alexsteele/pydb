@@ -47,7 +47,7 @@ class HeapFileTestCase(unittest.TestCase):
 
             check_contents(f)
 
-            for idx in (-1,):
+            for idx in (-1, 0):
                 f.remove(offsets[idx])
                 with self.assertRaises(ValueError):
                     f.get(offsets[idx])
