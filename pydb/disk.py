@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import (
     Iterator,
     Optional,
@@ -5,9 +6,10 @@ from typing import (
     List,
     Sequence,
 )
-import struct
+import io
+import os
 import pickle
-import os.path
+import struct
 from .core import Database
 from .index import Index
 from .table import ITable, Schema
@@ -19,13 +21,29 @@ from .query import CreateTable, Insert, Select
 from .table import Dict, ITable, Schema, check_schema
 
 
+@dataclass
+class RowHeader:
+    SIZE = 5
+    size: int
+    tombstone: bool
+
+    def write(self, w):
+        w.write(struct.pack("<L?", self.size, self.tombstone))
+
+    @classmethod
+    def read(cls, r):
+        size, tombstone = struct.unpack("<L?", r.read(cls.SIZE))
+        return RowHeader(size, tombstone)
+
+
+# TODO: Minimize seeks
+# TODO: Prefix file with HEADER
 class HeapFile:
     """
     - not threadsafe
     - at most one open instance of the file at any time
     """
 
-    # TODO: prefix file with header
     MAGIK = "hfmagik"
     VERSION = 1
     HEADER = "{} v{}".format(MAGIK, VERSION).encode("utf-8")
@@ -36,7 +54,14 @@ class HeapFile:
 
     @staticmethod
     def open(path: str):
-        return HeapFile(open(path, "ab+"))
+        # We want read/write/create if DNE. Incredibly, no mode seems to
+        # accomplish this. WTF. I thought I understood you unix. Alas,
+        # it's not me it's you.
+        #   'r' modes only work if it exists
+        #   'w' modes truncate if it exists
+        #   'a' modes only allow appends so seek()+write() doesn't work D:
+        mode = "rb+" if os.path.exists(path) else "wb+"
+        return HeapFile(open(path, mode))
 
     def close(self):
         self._file.close()
@@ -48,54 +73,53 @@ class HeapFile:
         self._file.close()
 
     def append(self, record: Tuple) -> int:
-
-        # seek to end. TODO: avoid
-        self._file.seek(0, 2)
-
-        data = pickle.dumps(record)
-        size = self._encode_size(len(data))
+        self._file.seek(0, io.SEEK_END)  # TODO: avoid seek
         offset = self._file.tell()
-
-        assert len(size) == self.PREFIX_SIZE
-
-        self._file.write(size)
+        data = pickle.dumps(record)
+        header = RowHeader(size=len(data), tombstone=False)
+        header.write(self._file)
         self._file.write(data)
-
         return offset
 
-    def get(self, offset: int = -1) -> Tuple:
-        if offset != -1:
-            self._file.seek(offset)
-            return self.get()
-
-        size = self._decode_size(self._file.read(self.PREFIX_SIZE))
-        data = self._file.read(size)
-        record = pickle.loads(data)
+    def get(self, offset: int) -> Tuple:
+        self._file.seek(offset)
+        header, record = self._iget()
+        if header.tombstone:
+            raise ValueError("row is removed")
         return record
 
+    def _iget(self):
+        header = RowHeader.read(self._file)
+        if header.tombstone:
+            self._file.seek(header.size, io.SEEK_CUR)
+            return header, None
+        data = self._file.read(header.size)
+        record = pickle.loads(data)
+        return header, record
+
+    def remove(self, offset: int):
+        self._file.seek(offset)
+        header = RowHeader.read(self._file)
+        if not header.tombstone:
+            header.tombstone = True
+            self._file.seek(offset)
+            header.write(self._file)
+            self._file.seek(offset)
+
     def scan(self, start=0) -> Iterator[Tuple[int, Tuple]]:
-        self._file.seek(0, 2)
-        end_offset = self._file.tell()
+        self._file.seek(0, io.SEEK_END)
+        end = self._file.tell()
         self._file.seek(start)
         offset = start
-        while offset < end_offset:
-            yield offset, self.get()
+        while offset < end:
+            header, record = self._iget()
+            if not header.tombstone:
+                yield offset, record
             offset = self._file.tell()
 
     # TODO: allow append(), get() while iterating
     def __iter__(self) -> Iterator[Tuple[int, Tuple]]:
         return self.scan()
-
-    @staticmethod
-    def _encode_size(size: int) -> bytes:
-        return struct.pack("<L", size)
-
-    @staticmethod
-    def _decode_size(s: bytes) -> int:
-        assert len(s) == HeapFile.PREFIX_SIZE
-        vals = struct.unpack("<L", s)
-        assert len(vals) == 1
-        return vals[0]
 
 
 # TODO: Support secondary indexes
@@ -133,6 +157,9 @@ class DiskTable(ITable):
         offset = self._file.append(row)
         self._row_index.append(offset)
         return len(self._row_index) - 1, row
+
+    def remove(self, rowid: int):
+        pass
 
     def get(self, rowid: int) -> Optional[Tuple]:
         return self._file.get(self._row_index[rowid])

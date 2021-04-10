@@ -1,15 +1,24 @@
 from . import context
 from .base import DatabaseTestCase, STUDENTS_SCHEMA, create_test_student
 from pydb.query import CreateTable, Insert, Select, From
-from pydb.disk import HeapFile, DiskTable, DiskDatabase
+from pydb.disk import RowHeader, HeapFile, DiskTable, DiskDatabase
+from io import BytesIO
 import os
 import shutil
 import tempfile
 import unittest
 
 
+def test_row_header():
+    h = RowHeader(size=4, tombstone=False)
+    with BytesIO() as buf:
+        h.write(buf)
+        assert len(buf.getvalue()) == RowHeader.SIZE
+        buf.seek(0)
+        assert h == RowHeader.read(buf)
+
 class HeapFileTestCase(unittest.TestCase):
-    def test_heap_file_basics(self):
+    def test_heap_file(self):
         fd, path = tempfile.mkstemp("heap_file_test")
         os.close(fd)
 
@@ -20,27 +29,32 @@ class HeapFileTestCase(unittest.TestCase):
             (3, "d", 3.3),
         ]
         offsets = []
+
+        def check_contents(f: HeapFile):
+            for record, offset in zip(records, offsets):
+                self.assertEqual(f.get(offset), record)
+            self.assertEqual(list(iter(f)), list(zip(offsets, records)))
+
         with HeapFile.open(path) as f:
             for record in records:
                 offsets.append(f.append(record))
-            for record, offset in zip(records, offsets):
-                self.assertEqual(f.get(offset), record)
-            self.assertEqual(list(iter(f)), list(zip(offsets, records)))
+            check_contents(f)
         with HeapFile.open(path) as f:
-            for record, offset in zip(records, offsets):
-                self.assertEqual(f.get(offset), record)
-            self.assertEqual(list(iter(f)), list(zip(offsets, records)))
+            check_contents(f)
 
             records.append((4, "e", 4.4))
             offsets.append(f.append(records[-1]))
 
-            for record, offset in zip(records, offsets):
-                self.assertEqual(f.get(offset), record)
-            self.assertEqual(list(iter(f)), list(zip(offsets, records)))
+            check_contents(f)
 
-    @unittest.skip
-    def test_heap_file_corruption(self):
-        pass
+            for idx in (-1,):
+                f.remove(offsets[idx])
+                with self.assertRaises(ValueError):
+                    f.get(offsets[idx])
+                offsets.pop(idx)
+                records.pop(idx)
+
+            check_contents(f)
 
 
 class DiskTableTestCase(unittest.TestCase):
