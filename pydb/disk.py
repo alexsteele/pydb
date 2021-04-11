@@ -158,7 +158,10 @@ class DiskTable(ITable):
         return len(self._row_index) - 1, row
 
     def delete(self, rowid: int):
-        self._file.remove(self._row_index[rowid])
+        offset = self._row_index[rowid]
+        if offset is None:
+            raise ValueError("rowid {} does not exist".format(rowid))
+        self._file.remove(offset)
         self._row_index[rowid] = None
 
     def get(self, rowid: int) -> Optional[Tuple]:
