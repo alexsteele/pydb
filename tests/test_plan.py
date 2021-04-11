@@ -5,7 +5,6 @@ from pydb.expr import (
     HashJoin,
     IndexedJoin,
     IndexedLookup,
-    Rows,
     Scan,
 )
 from pydb.mem import MemTable
@@ -39,14 +38,14 @@ class SimplePlannerTestCase(unittest.TestCase):
     def test_full_scan(self):
         query = Select(students.column_names(), From("students"))
         plan = self.planner.plan(query)
-        expected = Scan(Rows(self.table))
+        expected = Scan(self.table)
         self.assertEqual(plan, expected)
 
     def test_column_projection(self):
         query = Select(("name", "age"), From("students"))
         plan = self.planner.plan(query)
         expected = ColumnProjection(
-            Scan(Rows(self.table)), students.columnids("name", "age")
+            Scan(self.table), students.columnids("name", "age")
         )
         self.assertEqual(plan, expected)
 
@@ -88,8 +87,8 @@ class SimplePlannerTestCase(unittest.TestCase):
         )
         expected = ColumnProjection(
             HashJoin(
-                Scan(Rows(self.table)),
-                Scan(Rows(table2)),
+                Scan(self.table),
+                Scan(table2),
                 students.columnid("name"),
                 signups.columnid("name"),
             ),
@@ -116,7 +115,7 @@ class SimplePlannerTestCase(unittest.TestCase):
         assert any(table2.indexes("sid"))
         expected = ColumnProjection(
             IndexedJoin(
-                Scan(Rows(self.table)),
+                Scan(self.table),
                 table2.schema().columnid("sid"),
                 table2.indexes("sid")[0],
                 table2,

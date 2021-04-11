@@ -7,7 +7,6 @@ from .expr import (
     IndexedJoin,
     IndexedLookup,
     IndexedLookup,
-    Rows,
     Scan,
 )
 from .query import (
@@ -58,11 +57,10 @@ class SimplePlanner:
         else:
             table = self._tables[query.from_clause.table]
             self._curr_table = table
-            expr = Rows(table)
             if query.where_clause:
-                expr = self._plan_where(expr, query.where_clause)
+                expr = self._plan_where(table, query.where_clause)
             else:
-                expr = Scan(expr)
+                expr = Scan(table)
             columns = table.schema().columnids(*query.exprs)
             if columns != table.schema().columnids():
                 expr = ColumnProjection(expr, columns)
@@ -98,15 +96,15 @@ class SimplePlanner:
 
         if any(table2.indexes(col2.name)):
             return IndexedJoin(
-                Scan(Rows(table1)),
+                Scan(table1),
                 table1.schema().columnid(col1.name),
                 table2.indexes(col2.name)[0],
                 table2,
             )
         else:
             return HashJoin(
-                Scan(Rows(table1)),
-                Scan(Rows(table2)),
+                Scan(table1),
+                Scan(table2),
                 table1.schema().columnid(col1.name),
                 table2.schema().columnid(col2.name),
             )
@@ -131,12 +129,12 @@ class SimplePlanner:
             tuple(column_indexes),
         )
 
-    def _plan_where(self, expr: Expr, clause: Where):
+    def _plan_where(self, table: ITable, clause: Where):
         assert clause.condition
         lookup = self._indexed_lookup(clause)
         if lookup:
             return lookup
-        return FilteredScan(expr, self._where_filter(clause))
+        return FilteredScan(table, self._where_filter(clause))
 
     def _indexed_lookup(self, clause: Where) -> Optional[Expr]:
         assert self._curr_table

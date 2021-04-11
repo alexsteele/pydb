@@ -20,7 +20,7 @@ class Expr:
 
 
 @dataclass
-class Rows(Expr):
+class Scan(Expr):
     table: ITable
 
     def exec(self) -> Iterator[Tuple]:
@@ -41,20 +41,12 @@ class IndexedLookup(Expr):
 
 
 @dataclass
-class Scan(Expr):
-    expr: Expr
-
-    def exec(self):
-        return self.expr.exec()
-
-
-@dataclass
 class FilteredScan(Expr):
-    expr: Expr
+    table: ITable
     filter: Callable[[Tuple], bool]
 
     def exec(self):
-        return (row for row in self.expr.exec() if self.filter(row))
+        return (row for row in self.table.rows() if self.filter(row))
 
 
 @dataclass
