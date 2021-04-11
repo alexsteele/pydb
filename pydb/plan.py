@@ -2,6 +2,10 @@ from typing import Dict, Optional, Tuple
 from .expr import (
     ColumnProjection,
     Expr,
+    Condition,
+    BinOp,
+    ColumnComp,
+    ValueComp,
     FilteredScan,
     HashJoin,
     IndexedJoin,
@@ -9,6 +13,7 @@ from .expr import (
     IndexedLookup,
     Scan,
 )
+import typing
 from .query import (
     BinExpr,
     Const,
@@ -32,11 +37,9 @@ class Planner:
 
 class SimplePlanner:
     BINOPS = {
-        "=": lambda a, b: a == b,
-        "<": lambda a, b: a < b,
-        ">": lambda a, b: a > b,
-        "<=": lambda a, b: a <= b,
-        ">=": lambda a, b: a >= b,
+        "=": BinOp.EQ,
+        "<": BinOp.LT,
+        ">": BinOp.GT,
     }
 
     def __init__(self, tables: Dict[str, ITable]):
@@ -161,14 +164,30 @@ class SimplePlanner:
             return (cond.right.val, cond.left.val)
         return (None, None)
 
-    # TODO: Turn this into a static filter/Expr
-    def _where_filter(self, clause: Where):
+    @typing.no_type_check
+    def _where_filter(self, clause: Where) -> Condition:
         cond = clause.condition
         if isinstance(cond, BinExpr):
             op = self.BINOPS[cond.op]
-            left = self._operand(cond.left)
-            right = self._operand(cond.right)
-            return lambda row: op(left(row), right(row))
+            types = (type(cond.left), type(cond.right))
+            assert self._curr_table
+            schema = self._curr_table.schema()
+            if types == (Symbol, Symbol):
+                col1 = schema.columnid(cond.left.val)
+                col2 = schema.columnid(cond.right.val)
+                return ColumnComp(op, col1, col2)
+            elif types == (Symbol, Const):
+                col = schema.columnid(cond.left.val)
+                val = cond.right.val
+                return ValueComp(op, col, val)
+            elif types == (Const, Symbol):
+                val = cond.left.val
+                col = schema.columnid(cond.right.val)
+                return ValueComp(op, col, val)
+            else:
+                raise ValueError(
+                    "unsupported expression types in where: {}".format(clause)
+                )
         else:
             raise NotImplementedError()
 

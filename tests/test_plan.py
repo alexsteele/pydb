@@ -6,6 +6,10 @@ from pydb.expr import (
     IndexedJoin,
     IndexedLookup,
     Scan,
+    BinOp,
+    FilteredScan,
+    ValueComp,
+    ColumnComp,
 )
 from pydb.mem import MemTable
 from pydb.plan import SimplePlanner
@@ -44,13 +48,23 @@ class SimplePlannerTestCase(unittest.TestCase):
     def test_column_projection(self):
         query = Select(("name", "age"), From("students"))
         plan = self.planner.plan(query)
-        expected = ColumnProjection(
-            Scan(self.table), students.columnids("name", "age")
-        )
+        expected = ColumnProjection(Scan(self.table), students.columnids("name", "age"))
         self.assertEqual(plan, expected)
 
     def test_filtered_scan(self):
-        pass
+        query = Select(
+            ("name", "age"),
+            From("students"),
+            Where(BinExpr("=", Symbol("name"), Const("matt"))),
+        )
+        plan = self.planner.plan(query)
+        expected = ColumnProjection(
+            FilteredScan(
+                self.table, ValueComp(BinOp.EQ, students.columnid("name"), "matt")
+            ),
+            (students.columnid("name"), students.columnid("age")),
+        )
+        self.assertEqual(plan, expected)
 
     def test_indexed_lookup(self):
         assert any(self.table.indexes("id")), "missing index"

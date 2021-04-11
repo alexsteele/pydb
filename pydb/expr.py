@@ -1,4 +1,5 @@
 from collections import defaultdict
+from enum import Enum
 from dataclasses import dataclass
 from typing import (
     Any,
@@ -40,13 +41,44 @@ class IndexedLookup(Expr):
         return (self.table.get(rowid),)
 
 
+class Condition(Protocol):
+    def test(self, row: Tuple) -> bool:
+        pass
+
+
+class BinOp(Enum):
+    EQ = lambda x, y: x == y
+    LT = lambda x, y: x < y
+    GT = lambda x, y: x > y
+
+
+@dataclass
+class ValueComp(Condition):
+    op: BinOp
+    col: int
+    val: Any
+
+    def test(self, row):
+        return self.op(row[self.col], self.val)
+
+
+@dataclass
+class ColumnComp(Condition):
+    op: BinOp
+    col1: int
+    col2: int
+
+    def test(self, row):
+        return self.op(row[self.col1], row[self.col2])
+
+
 @dataclass
 class FilteredScan(Expr):
     table: ITable
-    filter: Callable[[Tuple], bool]
+    cond: Condition
 
     def exec(self):
-        return (row for row in self.table.rows() if self.filter(row))
+        return (row for row in self.table.rows() if self.cond.test(row))
 
 
 @dataclass
@@ -63,33 +95,6 @@ class IndexedJoin(Expr):
                 row2 = self.table.get(rowid)
                 assert row2 is not None
                 yield (*row1, *row2)
-
-
-class JoinCondition(Protocol):
-    def test(self, row1: Tuple, row2: Tuple) -> bool:
-        pass
-
-
-@dataclass
-class ColumnEquals(JoinCondition):
-    col1: int
-    col2: int
-
-    def test(row1, row2):
-        return row1[self.col1] == row2[self.col2]
-
-
-@dataclass
-class NestedLoopJoin(Expr):
-    exp1: Expr
-    exp2: Expr
-    cond: JoinCondition
-
-    def exec(self):
-        for row1 in self.exp1.exec():
-            for row2 in self.exp2.exec():
-                if self.cond.test(row1, row2):
-                    yield (*row1, *row2)
 
 
 @dataclass
