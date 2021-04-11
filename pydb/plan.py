@@ -1,17 +1,17 @@
 from typing import Dict, Optional, Tuple
 from .expr import (
-    ColumnProjection,
-    Expr,
-    Condition,
     BinOp,
     ColumnComp,
-    ValueComp,
+    ColumnProjection,
+    Condition,
+    Expr,
     FilteredScan,
     HashJoin,
     IndexedJoin,
     IndexedLookup,
     IndexedLookup,
     Scan,
+    ValueComp,
 )
 import typing
 from .query import (
