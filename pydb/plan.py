@@ -44,7 +44,6 @@ class SimplePlanner:
 
     def __init__(self, tables: Dict[str, ITable]):
         self._tables = tables
-        self._curr_table = None  # type: Optional[ITable]
 
     def plan(self, query: Query) -> Expr:
         if isinstance(query, Select):
@@ -59,7 +58,6 @@ class SimplePlanner:
             return self._plan_join_projection(expr, query)
         else:
             table = self._tables[query.from_clause.table]
-            self._curr_table = table
             if query.where_clause:
                 expr = self._plan_where(table, query.where_clause)
             else:
@@ -134,18 +132,17 @@ class SimplePlanner:
 
     def _plan_where(self, table: ITable, clause: Where):
         assert clause.condition
-        lookup = self._indexed_lookup(clause)
+        lookup = self._indexed_lookup(table, clause)
         if lookup:
             return lookup
-        return FilteredScan(table, self._where_filter(clause))
+        return FilteredScan(table, self._where_filter(table, clause))
 
-    def _indexed_lookup(self, clause: Where) -> Optional[Expr]:
-        assert self._curr_table
+    def _indexed_lookup(self, table: ITable, clause: Where) -> Optional[Expr]:
         column, key = self._extract_key_col(clause)
-        index = next(iter(self._curr_table.indexes(column)), None)
+        index = next(iter(table.indexes(column)), None)
         if not index:
             return None
-        return IndexedLookup(self._curr_table, index, key)
+        return IndexedLookup(table, index, key)
 
     def _extract_key_col(self, clause: Where) -> Tuple[Optional[str], Optional[str]]:
         cond = clause.condition
@@ -165,13 +162,12 @@ class SimplePlanner:
         return (None, None)
 
     @typing.no_type_check
-    def _where_filter(self, clause: Where) -> Condition:
+    def _where_filter(self, table: ITable, clause: Where) -> Condition:
         cond = clause.condition
         if isinstance(cond, BinExpr):
             op = self.BINOPS[cond.op]
             types = (type(cond.left), type(cond.right))
-            assert self._curr_table
-            schema = self._curr_table.schema()
+            schema = table.schema()
             if types == (Symbol, Symbol):
                 col1 = schema.columnid(cond.left.val)
                 col2 = schema.columnid(cond.right.val)
@@ -190,16 +186,6 @@ class SimplePlanner:
                 )
         else:
             raise NotImplementedError()
-
-    def _operand(self, op: Operand):
-        if isinstance(op, Const):
-            return lambda row: op.val
-        elif isinstance(op, Symbol):
-            assert self._curr_table
-            cid = self._curr_table.schema().columnid(op.val)
-            return lambda row: row[cid]
-        else:
-            raise NotImplementedError("unexpected operand {}".format(op))
 
     def _find_join_column(self, colname: str) -> Tuple[ITable, Column]:
         parts = colname.split(".")
