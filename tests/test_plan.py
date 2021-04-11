@@ -1,13 +1,26 @@
 from . import context
 import unittest
-from pydb.expr import Rows
-from pydb.lookup import IndexedLookup
+from pydb.expr import (
+    ColumnProjection,
+    HashJoin,
+    IndexedJoin,
+    IndexedLookup,
+    Rows,
+    Scan,
+)
 from pydb.mem import MemTable
 from pydb.plan import SimplePlanner
-from pydb.join import HashJoin, IndexedJoin
-from pydb.project import ColumnProjection
-from pydb.query import BinExpr, Const, From, Select, Symbol, Where, Join, On, JoinKind
-from pydb.scan import Scan
+from pydb.query import (
+    BinExpr,
+    Const,
+    From,
+    Join,
+    JoinKind,
+    On,
+    Select,
+    Symbol,
+    Where,
+)
 from pydb.table import Column, ColumnAttr, DataType, Schema
 
 students = Schema(

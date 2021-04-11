@@ -1,22 +1,28 @@
 from typing import Dict, Optional, Tuple
-
-from .expr import Expr, Rows
-from .lookup import IndexedLookup
-from .project import ColumnProjection
-from .join import IndexedJoin, HashJoin
+from .expr import (
+    ColumnProjection,
+    Expr,
+    FilteredScan,
+    HashJoin,
+    IndexedJoin,
+    IndexedLookup,
+    IndexedLookup,
+    Rows,
+    Scan,
+)
 from .query import (
     BinExpr,
     Const,
+    Delete,
+    Join,
+    JoinKind,
+    On,
     Operand,
     Query,
     Select,
     Symbol,
     Where,
-    Join,
-    JoinKind,
-    On,
 )
-from .scan import FilteredScan, Scan
 from .table import ITable, Column
 
 
@@ -61,6 +67,9 @@ class SimplePlanner:
             if columns != table.schema().columnids():
                 expr = ColumnProjection(expr, columns)
         return expr
+
+    def _plan_delete(self, query: Delete) -> Expr:
+        pass
 
     def _plan_join(self, clause: Join):
         if len(clause.tables) != 2:
