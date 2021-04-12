@@ -13,6 +13,15 @@ class DataType(Enum):
     STRING = "STRING"
 
 
+def check_type(dtype: DataType, val: Any):
+    types = {DataType.INT: int, DataType.STRING: str}
+    expected = types.get(dtype)
+    if not expected:
+        raise ValueError("unrecognized dtype: {}".format(dtype))
+    if type(val) != expected:
+        raise ValueError("wrong type. got {}. expected {}.".format(type(val), expected))
+
+
 class ColumnAttr(Enum):
     AUTO_INCREMENT = "AUTO_INCREMENT"
     DEFAULT = "DEFAULT"
@@ -77,6 +86,11 @@ def check_schema(schema: Schema):
     for col in schema.columns:
         check_column(col)
 
+# TODO: finish!
+@dataclass
+class Row:
+    rowid: int
+    columns: Tuple
 
 class ITable(Protocol):
     def name(self) -> str:
@@ -86,6 +100,7 @@ class ITable(Protocol):
         pass
 
     def insert(self, row: Tuple) -> Tuple[int, Tuple]:
+        """returns (rowid, row)"""
         pass
 
     def delete(self, rowid: int):
@@ -94,7 +109,8 @@ class ITable(Protocol):
     def get(self, rowid: int) -> Optional[Tuple]:
         pass
 
-    def rows(self) -> Iterator[Tuple]:
+    def rows(self) -> Iterator[Tuple[int, Tuple]]:
+        """row format: (rowid, row)"""
         pass
 
     def indexes(self, column: Optional[str] = None) -> Sequence[Index]:
